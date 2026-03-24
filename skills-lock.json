@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "skills": {
+    "documentation": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "computedHash": "9a43f2e8ebb01dbc162ad78d865ff9e20bf20270e0514095c3bf3f1ac43599c6"
+    },
+    "fastify-best-practices": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "computedHash": "269924684709b8c6f50a569ef988e66031efb822ef92cba6c8dfa160e54ed4d4"
+    },
+    "init": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "computedHash": "3a30628fcb5d80a3e06df0fd749bd08c27054114f545a570e49ea3d888634abe"
+    },
+    "node": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "computedHash": "aba2163ddb3fcf3e6a9d101ac370fabc94055b3e628b125dd084969f1a945993"
+    },
+    "nodejs-core": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "computedHash": "4827b234ad11c0507de5b13312c58021bc4bfc5f6ca3f1fdb3e6dbb4b515590d"
+    },
+    "skill-optimizer": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "computedHash": "20a3bba5ec24de498f9b71c6c8f23cdedce5cc1bf2a0ff7aaab716cedf2b0bad"
+    },
+    "snipgrapher": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "computedHash": "2bc2074c37caa2a4936109e254abaf5a1f3abaa88937714176170a606dd2e681"
+    },
+    "typescript-magician": {
+      "source": "mcollina/skills",
+      "sourceType": "github",
+      "computedHash": "99e61d29c107b3c52adbb70c6ee8cfbfb7830ea0649dba4ec89557fdf5c46b54"
+    }
+  }
+}

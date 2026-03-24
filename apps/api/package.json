@@ -1,0 +1,30 @@
+{
+  "name": "apps",
+  "version": "1.0.0",
+  "description": "Invy API built with Fastify",
+  "type": "module",
+  "main": "app.ts",
+  "scripts": {
+    "dev": "node --experimental-strip-types --watch server.ts",
+    "start": "node --experimental-strip-types server.ts",
+    "test": "node --experimental-strip-types --test 'test/**/*.test.ts'",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.0",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "@fastify/autoload": "^6.0.0",
+    "@fastify/sensible": "^6.0.0",
+    "fastify": "^5.0.0",
+    "fastify-plugin": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2"
+  }
+}
