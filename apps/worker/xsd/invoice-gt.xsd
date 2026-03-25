@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:dte="http://www.sat.gob.gt/dte/fel/0.2.0"
+  xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+  targetNamespace="http://www.sat.gob.gt/dte/fel/0.2.0"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+
+  <!-- Import XML Digital Signature schema -->
+  <xs:import namespace="http://www.w3.org/2000/09/xmldsig#"
+             schemaLocation="http://www.w3.org/TR/xmldsig-core/xmldsig-core-schema.xsd"/>
+
+  <!-- ═══════════════════════════════════════════════════
+       Root element
+  ════════════════════════════════════════════════════ -->
+  <xs:element name="GTDocumento">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="SAT" type="dte:SATType"/>
+        <xs:element ref="ds:Signature" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="Version" type="xs:string" use="required" fixed="0.1"/>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- ═══════════════════════════════════════════════════
+       SAT
+  ════════════════════════════════════════════════════ -->
+  <xs:complexType name="SATType">
+    <xs:sequence>
+      <xs:element name="DTE" type="dte:DTEType"/>
+    </xs:sequence>
+    <xs:attribute name="ClaseDocumento" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="dte"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <!-- ═══════════════════════════════════════════════════
+       DTE
+  ════════════════════════════════════════════════════ -->
+  <xs:complexType name="DTEType">
+    <xs:sequence>
+      <xs:element name="DatosEmision" type="dte:DatosEmisionType"/>
+      <xs:element name="Certificacion" type="dte:CertificacionType"/>
+    </xs:sequence>
+    <xs:attribute name="ID" type="xs:ID" use="required" fixed="DatosCertificados"/>
+  </xs:complexType>
+
+  <!-- ═══════════════════════════════════════════════════
+       DatosEmision
+  ════════════════════════════════════════════════════ -->
+  <xs:complexType name="DatosEmisionType">
+    <xs:sequence>
+      <xs:element name="DatosGenerales" type="dte:DatosGeneralesType"/>
+      <xs:element name="Emisor"         type="dte:EmisorType"/>
+      <xs:element name="Receptor"       type="dte:ReceptorType"/>
+      <xs:element name="Frases"         type="dte:FrasesType"   minOccurs="0"/>
+      <xs:element name="Items"          type="dte:ItemsType"/>
+      <xs:element name="Totales"        type="dte:TotalesType"/>
+    </xs:sequence>
+    <xs:attribute name="ID" type="xs:ID" use="required" fixed="DatosEmision"/>
+  </xs:complexType>
+
+  <!-- DatosGenerales -->
+  <xs:complexType name="DatosGeneralesType">
+    <xs:attribute name="CodigoMoneda"    type="xs:string"   use="required"/>
+    <xs:attribute name="FechaHoraEmision" type="xs:dateTime" use="required"/>
+    <xs:attribute name="Tipo"            use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="FACT"/>
+          <xs:enumeration value="FCAM"/>
+          <xs:enumeration value="FPEQ"/>
+          <xs:enumeration value="FCAP"/>
+          <xs:enumeration value="FESP"/>
+          <xs:enumeration value="NABN"/>
+          <xs:enumeration value="RDON"/>
+          <xs:enumeration value="RECI"/>
+          <xs:enumeration value="NDEB"/>
+          <xs:enumeration value="NCRE"/>
+          <xs:enumeration value="FACA"/>
+          <xs:enumeration value="FCCA"/>
+          <xs:enumeration value="LIQE"/>
+          <xs:enumeration value="DEBE"/>
+          <xs:enumeration value="CBCA"/>
+          <xs:enumeration value="CCCA"/>
+          <xs:enumeration value="MAEN"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="NumeroAcceso"   type="xs:string"   use="optional"/>
+    <xs:attribute name="Descripcion"    type="xs:string"   use="optional"/>
+  </xs:complexType>
+
+  <!-- ═══════════════════════════════════════════════════
+       Emisor
+  ════════════════════════════════════════════════════ -->
+  <xs:complexType name="EmisorType">
+    <xs:sequence>
+      <xs:element name="DireccionEmisor" type="dte:DireccionType"/>
+    </xs:sequence>
+    <xs:attribute name="AfiliacionIVA"        use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="GEN"/>
+          <xs:enumeration value="EXE"/>
+          <xs:enumeration value="PEQ"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="CodigoEstablecimiento" type="xs:string"  use="required"/>
+    <xs:attribute name="CorreoEmisor"          type="xs:string"  use="optional"/>
+    <xs:attribute name="NITEmisor"             type="xs:string"  use="required"/>
+    <xs:attribute name="NombreComercial"       type="xs:string"  use="optional"/>
+    <xs:attribute name="NombreEmisor"          type="xs:string"  use="required"/>
+  </xs:complexType>
+
+  <!-- ═══════════════════════════════════════════════════
+       Receptor
+  ════════════════════════════════════════════════════ -->
+  <xs:complexType name="ReceptorType">
+    <xs:sequence>
+      <xs:element name="DireccionReceptor" type="dte:DireccionType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="CorreoReceptor"  type="xs:string" use="optional"/>
+    <xs:attribute name="IDReceptor"      type="xs:string" use="required"/>
+    <xs:attribute name="NombreReceptor"  type="xs:string" use="required"/>
+    <xs:attribute name="TipoEspecial"    type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <!-- Shared address type -->
+  <xs:complexType name="DireccionType">
+    <xs:sequence>
+      <xs:element name="Direccion"    type="xs:string"/>
+      <xs:element name="CodigoPostal" type="xs:string"  minOccurs="0"/>
+      <xs:element name="Municipio"    type="xs:string"  minOccurs="0"/>
+      <xs:element name="Departamento" type="xs:string"  minOccurs="0"/>
+      <xs:element name="Pais"         type="xs:string"  minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ═══════════════════════════════════════════════════
+       Frases
+  ════════════════════════════════════════════════════ -->
+  <xs:complexType name="FrasesType">
+    <xs:sequence>
+      <xs:element name="Frase" type="dte:FraseType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="FraseType">
+    <xs:attribute name="CodigoEscenario" type="xs:string" use="required"/>
+    <xs:attribute name="TipoFrase"       type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <!-- ═══════════════════════════════════════════════════
+       Items
+  ════════════════════════════════════════════════════ -->
+  <xs:complexType name="ItemsType">
+    <xs:sequence>
+      <xs:element name="Item" type="dte:ItemType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ItemType">
+    <xs:sequence>
+      <xs:element name="Cantidad"       type="xs:decimal"/>
+      <xs:element name="UnidadMedida"   type="xs:string"  minOccurs="0"/>
+      <xs:element name="Descripcion"    type="xs:string"/>
+      <xs:element name="PrecioUnitario" type="xs:decimal"/>
+      <xs:element name="Precio"         type="xs:decimal"/>
+      <xs:element name="Descuento"      type="xs:decimal"/>
+      <xs:element name="OtrosDescuento" type="xs:decimal" minOccurs="0"/>
+      <xs:element name="Impuestos"      type="dte:ImpuestosType"/>
+      <xs:element name="Total"          type="xs:decimal"/>
+    </xs:sequence>
+    <xs:attribute name="BienOServicio" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="B"/>
+          <xs:enumeration value="S"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="NumeroLinea" type="xs:positiveInteger" use="required"/>
+  </xs:complexType>
+
+  <!-- Impuestos -->
+  <xs:complexType name="ImpuestosType">
+    <xs:sequence>
+      <xs:element name="Impuesto" type="dte:ImpuestoType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ImpuestoType">
+    <xs:sequence>
+      <xs:element name="NombreCorto"          type="xs:string"/>
+      <xs:element name="CodigoUnidadGravable" type="xs:string"/>
+      <xs:element name="MontoGravable"        type="xs:decimal"/>
+      <xs:element name="MontoImpuesto"        type="xs:decimal"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ═══════════════════════════════════════════════════
+       Totales
+  ════════════════════════════════════════════════════ -->
+  <xs:complexType name="TotalesType">
+    <xs:sequence>
+      <xs:element name="TotalImpuestos" type="dte:TotalImpuestosType" minOccurs="0"/>
+      <xs:element name="GranTotal"      type="xs:decimal"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TotalImpuestosType">
+    <xs:sequence>
+      <xs:element name="TotalImpuesto" type="dte:TotalImpuestoType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TotalImpuestoType">
+    <xs:attribute name="NombreCorto"       type="xs:string"  use="required"/>
+    <xs:attribute name="TotalMontoImpuesto" type="xs:decimal" use="required"/>
+  </xs:complexType>
+
+  <!-- ═══════════════════════════════════════════════════
+       Certificacion  (added by the certifier / SAT)
+  ════════════════════════════════════════════════════ -->
+  <xs:complexType name="CertificacionType">
+    <xs:sequence>
+      <xs:element name="NITCertificador"       type="xs:string"/>
+      <xs:element name="NombreCertificador"    type="xs:string"/>
+      <xs:element name="NumeroAutorizacion"    type="dte:NumeroAutorizacionType"/>
+      <xs:element name="FechaHoraCertificacion" type="xs:dateTime"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="NumeroAutorizacionType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="Numero" type="xs:string" use="required"/>
+        <xs:attribute name="Serie"  type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+</xs:schema>

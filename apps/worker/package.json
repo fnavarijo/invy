@@ -1,25 +1,28 @@
 {
   "name": "worker",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.ts",
   "type": "module",
+  "main": "src/index.ts",
   "scripts": {
-    "dev": "node --experimental-strip-types --env-file-if-exists=.env --watch workers.ts",
-    "start": "node --experimental-strip-types --env-file-if-exists=.env workers.ts",
-    "typecheck": "tsc --noEmit",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev":       "node --experimental-strip-types --env-file-if-exists=.env --watch src/index.ts",
+    "start":     "node --experimental-strip-types --env-file-if-exists=.env src/index.ts",
+    "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.33.0",
   "dependencies": {
-    "bullmq": "^5.71.1",
-    "ioredis": "^5.10.1"
+    "@invy/db":        "workspace:*",
+    "@invy/storage":   "workspace:*",
+    "bullmq":          "^5.71.1",
+    "drizzle-orm":     "^0.45.1",
+    "decimal.js":      "^10.4.3",
+    "fast-xml-parser": "^4.5.3",
+    "ioredis":         "^5.10.1",
+    "ulid":            "^3.0.2",
+    "unzipper":        "^0.12.3"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
-    "typescript": "^6.0.2"
-  }
+    "@types/node":     "^25.5.0",
+    "@types/unzipper": "^0.10.10",
+    "typescript":      "^6.0.2"
+  },
+  "packageManager": "pnpm@10.33.0"
 }
