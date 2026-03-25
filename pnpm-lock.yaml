@@ -29,6 +29,9 @@ importers:
       '@invy/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@invy/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.1(postgres@3.4.8)
@@ -82,6 +85,22 @@ importers:
       postgres:
         specifier: ^3.4.8
         version: 3.4.8
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+
+  packages/storage:
+    dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.1016.0
+        version: 3.1016.0
+      '@aws-sdk/lib-storage':
+        specifier: ^3.1016.0
+        version: 3.1016.0(@aws-sdk/client-s3@3.1016.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
       typescript:
         specifier: ^6.0.2
         version: 6.0.2
