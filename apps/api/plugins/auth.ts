@@ -14,7 +14,8 @@ export default fp(async function (fastify: FastifyInstance) {
       // Strip query string for matching
       const path = url.split('?')[0] ?? '/';
 
-      if (PUBLIC_ROUTES.has(path)) {
+      // Browsers never send Authorization on OPTIONS preflight — skip auth
+      if (request.method === 'OPTIONS' || PUBLIC_ROUTES.has(path)) {
         return;
       }
 
