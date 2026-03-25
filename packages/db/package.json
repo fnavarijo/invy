@@ -1,0 +1,24 @@
+{
+  "name": "@invy/db",
+  "version": "1.0.0",
+  "description": "Shared Drizzle ORM database layer for Invy",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "drizzle-orm": "^0.45.1",
+    "postgres": "^3.4.8"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "drizzle-orm": "^0.45.1",
+    "drizzle-kit": "^0.31.10",
+    "postgres": "^3.4.8",
+    "typescript": "^6.0.2"
+  },
+  "packageManager": "pnpm@10.33.0"
+}
