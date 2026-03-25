@@ -1,0 +1,50 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API: Debug",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/api/server.ts",
+      "runtimeArgs": [
+        "--experimental-strip-types",
+        "--env-file-if-exists=${workspaceFolder}/apps/api/.env"
+      ],
+      "cwd": "${workspaceFolder}/apps/api",
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/apps/api/**/*.js"],
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "API: Test (all)",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--experimental-strip-types",
+        "--env-file-if-exists=${workspaceFolder}/apps/api/.env",
+        "--test",
+        "test/**/*.test.ts"
+      ],
+      "cwd": "${workspaceFolder}/apps/api",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "API: Test (current file)",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--experimental-strip-types",
+        "--env-file-if-exists=${workspaceFolder}/apps/api/.env",
+        "--test"
+      ],
+      "args": ["${relativeFile}"],
+      "cwd": "${workspaceFolder}/apps/api",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
+    }
+  ]
+}
