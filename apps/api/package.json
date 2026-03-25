@@ -21,6 +21,8 @@
     "test": "test"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1016.0",
+    "@aws-sdk/lib-storage": "^3.1016.0",
     "@fastify/autoload": "^6.0.0",
     "@fastify/env": "^5.0.3",
     "@fastify/multipart": "^9.4.0",

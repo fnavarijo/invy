@@ -1,5 +1,11 @@
-import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
-import multipart from '@fastify/multipart';
+import type {
+  FastifyInstance,
+  FastifyPluginAsync,
+  FastifyRequest,
+  FastifyReply,
+} from 'fastify';
+import multipart, { type MultipartFile } from '@fastify/multipart';
+import { Upload } from '@aws-sdk/lib-storage';
 import { ulid } from 'ulid';
 import { eq, and, ne, desc, asc, sql } from 'drizzle-orm';
 import { batches, invoices } from '../../../db/schema.ts';
@@ -64,9 +70,95 @@ interface InvoiceListQuery {
   cursor?: string;
 }
 
+async function drainPart(part: { toBuffer(): Promise<Buffer> }): Promise<void> {
+  await part.toBuffer().catch(() => {});
+}
+
+async function processFilePart(
+  fastify: FastifyInstance,
+  part: MultipartFile,
+  source: string | null,
+  reply: FastifyReply,
+): Promise<object | null> {
+  const fileName = part.filename ?? 'upload';
+  const mimeType = part.mimetype ?? '';
+
+  const fileType = mimeToFileType(mimeType);
+  if (!fileType) {
+    await drainPart(part);
+    return reply
+      .status(415)
+      .send(
+        buildError(
+          'UNSUPPORTED_FILE_TYPE',
+          `Unsupported file type "${mimeType}". Accepted: application/zip, application/xml, text/xml.`,
+        ),
+      );
+  }
+
+  const batchId = `b_${ulid().toLowerCase()}`;
+  const now = new Date();
+  const fileKey = `batches/${batchId}/${fileName}`;
+
+  const upload = new Upload({
+    client: fastify.storage,
+    params: {
+      Bucket: fastify.config.SPACES_BUCKET,
+      Key: fileKey,
+      Body: part.file,
+      ContentType: mimeType,
+    },
+  });
+
+  try {
+    await upload.done();
+  } catch (err) {
+    if (part.file.truncated) {
+      await upload.abort();
+      return reply
+        .status(413)
+        .send(buildError('FILE_TOO_LARGE', 'File exceeds the 50 MB limit.'));
+    }
+    throw err;
+  }
+
+  if (part.file.truncated) {
+    await upload.abort();
+    return reply
+      .status(413)
+      .send(buildError('FILE_TOO_LARGE', 'File exceeds the 50 MB limit.'));
+  }
+
+  // TODO: In case the insertion fails, we should delete the file from storage.
+  await fastify.db.insert(batches).values({
+    batch_id: batchId,
+    status: 'queued',
+    file_type: fileType,
+    file_name: fileName,
+    file_key: fileKey,
+    source: source ?? null,
+    errors: [],
+    created_at: now,
+  });
+
+  fastify.log.info(
+    { batchId, fileType, fileName },
+    'queue: batch job enqueued (stub)',
+  );
+
+  return reply.status(202).header('Location', `/v1/batches/${batchId}`).send({
+    batch_id: batchId,
+    status: 'queued',
+    file_type: fileType,
+    file_name: fileName,
+    created_at: now.toISOString(),
+  });
+}
+
 const batchesRoute: FastifyPluginAsync = async (fastify) => {
   await fastify.register(multipart, {
     limits: { fileSize: MAX_FILE_SIZE },
+    throwFileSizeLimit: false,
   });
 
   // ── POST /v1/batches ─────────────────────────────────────────────────────────
@@ -84,29 +176,26 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           );
       }
 
-      let fileBuffer: Buffer | null = null;
-      let fileName = '';
-      let mimeType = '';
+      let fileFound = false;
+      // NOTE: "source" must arrive before "file" in the multipart body so it
+      // is available when processFilePart builds the DB record.
       let source: string | null = null;
 
       try {
         for await (const part of request.parts()) {
           if (part.type === 'file' && part.fieldname === 'file') {
-            fileName = part.filename ?? 'upload';
-            mimeType = part.mimetype ?? '';
-            fileBuffer = await part.toBuffer();
+            fileFound = true;
+            return await processFilePart(
+              fastify,
+              part as MultipartFile,
+              source,
+              reply,
+            );
           } else if (part.type === 'field' && part.fieldname === 'source') {
             source = part.value as string;
           }
         }
       } catch (err) {
-        if (err instanceof fastify.multipartErrors.RequestFileTooLargeError) {
-          return reply
-            .status(413)
-            .send(
-              buildError('FILE_TOO_LARGE', 'File exceeds the 50 MB limit.'),
-            );
-        }
         fastify.log.error(err, 'multipart parse error');
         return reply
           .status(400)
@@ -115,53 +204,11 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           );
       }
 
-      if (!fileBuffer) {
+      if (!fileFound) {
         return reply
           .status(400)
           .send(buildError('MISSING_FIELD', 'Field "file" is required.'));
       }
-
-      const fileType = mimeToFileType(mimeType);
-      if (!fileType) {
-        return reply
-          .status(415)
-          .send(
-            buildError(
-              'UNSUPPORTED_FILE_TYPE',
-              `Unsupported file type "${mimeType}". Accepted: application/zip, application/xml, text/xml.`,
-            ),
-          );
-      }
-
-      const batchId = `b_${ulid().toLowerCase()}`;
-      const now = new Date();
-
-      await fastify.db.insert(batches).values({
-        batch_id: batchId,
-        status: 'queued',
-        file_type: fileType,
-        file_name: fileName,
-        file_key: `batches/${batchId}/${fileName}`,
-        source: source ?? null,
-        errors: [],
-        created_at: now,
-      });
-
-      fastify.log.info(
-        { batchId, fileType, fileName, fileSize: fileBuffer.length },
-        'queue: batch job enqueued (stub)',
-      );
-
-      return reply
-        .status(202)
-        .header('Location', `/v1/batches/${batchId}`)
-        .send({
-          batch_id: batchId,
-          status: 'queued',
-          file_type: fileType,
-          file_name: fileName,
-          created_at: now.toISOString(),
-        });
     },
   );
 
@@ -304,7 +351,7 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
         .where(
           and(eq(batches.batch_id, batch_id), ne(batches.status, 'processing')),
         )
-        .returning({ batch_id: batches.batch_id });
+        .returning({ batch_id: batches.batch_id, file_key: batches.file_key });
 
       if (deleted.length === 0) {
         // Status changed to processing between our check and the delete
@@ -318,10 +365,23 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           );
       }
 
-      fastify.log.info(
-        { batchId: batch_id },
-        'storage: file deletion enqueued (stub)',
-      );
+      const fileKey = deleted[0]!.file_key;
+      if (fileKey) {
+        try {
+          await fastify.storage.send(
+            new DeleteObjectCommand({
+              Bucket: fastify.config.SPACES_BUCKET,
+              Key: fileKey,
+            }),
+          );
+        } catch (err) {
+          // Log but don't fail the request — DB row is already deleted
+          fastify.log.error(
+            { err, fileKey },
+            'storage: failed to delete file from Spaces',
+          );
+        }
+      }
 
       return reply.status(204).send();
     },
