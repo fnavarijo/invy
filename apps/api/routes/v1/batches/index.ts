@@ -6,9 +6,10 @@ import type {
 } from 'fastify';
 import multipart, { type MultipartFile } from '@fastify/multipart';
 import { Upload } from '@aws-sdk/lib-storage';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { ulid } from 'ulid';
 import { eq, and, ne, desc, asc, sql } from 'drizzle-orm';
-import { batches, invoices } from '../../../db/schema.ts';
+import { batches, invoices } from '@invy/db';
 import type { FileType } from '../../../types/index.ts';
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts';
 

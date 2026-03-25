@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify'
 import { eq, and, desc, gte, lte, sql } from 'drizzle-orm'
-import { invoices } from '../../../db/schema.ts'
+import { invoices } from '@invy/db'
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts'
 
 interface InvoiceListQuery {

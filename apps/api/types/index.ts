@@ -1,4 +1,6 @@
-import { batchStatusEnum } from '../db/schema.ts'
+import { batchStatusEnum } from '@invy/db'
+import type { LineItem } from '@invy/db'
+export type { LineItem }
 
 export type BatchStatus = typeof batchStatusEnum.enumValues[number]
 
@@ -32,14 +34,6 @@ export interface BatchListItem {
   failed_count: number | null
   created_at: string
   completed_at: string | null
-}
-
-export interface LineItem {
-  name: string
-  quantity: number
-  type: string
-  unit_price: string
-  total: string
 }
 
 export interface InvoiceListItem {

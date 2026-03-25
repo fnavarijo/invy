@@ -1,9 +1,7 @@
 import fp from 'fastify-plugin'
-import postgres from 'postgres'
-import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import * as schema from '../db/schema.ts'
+import { createDb, type DB } from '@invy/db'
 
-export type DB = PostgresJsDatabase<typeof schema>
+export type { DB }
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -12,13 +10,7 @@ declare module 'fastify' {
 }
 
 export default fp(async function (fastify) {
-  const client = postgres(fastify.config.DATABASE_URL, {
-    max: 10,
-    idle_timeout: 30,
-    connect_timeout: 10,
-  })
-
-  const db = drizzle(client, { schema })
+  const { db, client } = createDb(fastify.config.DATABASE_URL)
 
   fastify.decorate('db', db)
 
