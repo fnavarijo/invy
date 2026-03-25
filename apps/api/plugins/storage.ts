@@ -1,26 +1,26 @@
 import fp from 'fastify-plugin';
-import { S3Client } from '@aws-sdk/client-s3';
+import { createStorage } from '@invy/storage';
+import type { StorageClient } from '@invy/storage';
 
 declare module 'fastify' {
   interface FastifyInstance {
-    storage: S3Client;
+    storage: StorageClient;
   }
 }
 
 export default fp(async function (fastify) {
-  const client = new S3Client({
+  const { storage, destroy } = createStorage({
     endpoint: fastify.config.SPACES_ENDPOINT,
     region: fastify.config.SPACES_REGION,
-    credentials: {
-      accessKeyId: fastify.config.SPACES_KEY,
-      secretAccessKey: fastify.config.SPACES_SECRET,
-    },
+    accessKeyId: fastify.config.SPACES_KEY,
+    secretAccessKey: fastify.config.SPACES_SECRET,
+    bucket: fastify.config.SPACES_BUCKET,
     forcePathStyle: false,
   });
 
-  fastify.decorate('storage', client);
+  fastify.decorate('storage', storage);
 
   fastify.addHook('onClose', async () => {
-    client.destroy();
+    destroy();
   });
 });

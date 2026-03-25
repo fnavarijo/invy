@@ -5,8 +5,6 @@ import type {
   FastifyReply,
 } from 'fastify';
 import multipart, { type MultipartFile } from '@fastify/multipart';
-import { Upload } from '@aws-sdk/lib-storage';
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { ulid } from 'ulid';
 import { eq, and, ne, desc, asc, sql } from 'drizzle-orm';
 import { batches, invoices } from '@invy/db';
@@ -101,14 +99,10 @@ async function processFilePart(
   const now = new Date();
   const fileKey = `batches/${batchId}/${fileName}`;
 
-  const upload = new Upload({
-    client: fastify.storage,
-    params: {
-      Bucket: fastify.config.SPACES_BUCKET,
-      Key: fileKey,
-      Body: part.file,
-      ContentType: mimeType,
-    },
+  const upload = fastify.storage.createUpload({
+    key: fileKey,
+    body: part.file,
+    contentType: mimeType,
   });
 
   try {
@@ -369,12 +363,7 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const fileKey = deleted[0]!.file_key;
       if (fileKey) {
         try {
-          await fastify.storage.send(
-            new DeleteObjectCommand({
-              Bucket: fastify.config.SPACES_BUCKET,
-              Key: fileKey,
-            }),
-          );
+          await fastify.storage.delete(fileKey);
         } catch (err) {
           // Log but don't fail the request — DB row is already deleted
           fastify.log.error(
