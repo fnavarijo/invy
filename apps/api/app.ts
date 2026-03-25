@@ -11,12 +11,15 @@ const options = {}
 const app: FastifyPluginAsync = async (fastify, opts) => {
   fastify.register(AutoLoad, {
     dir: join(__dirname, 'plugins'),
-    options: Object.assign({}, opts)
+    options: Object.assign({}, opts),
+    matchFilter: /\.ts$/,
   })
 
   fastify.register(AutoLoad, {
     dir: join(__dirname, 'routes'),
-    options: Object.assign({}, opts)
+    options: Object.assign({}, opts),
+    matchFilter: /\.ts$/,
+    routeParams: true,
   })
 }
 

@@ -5,10 +5,13 @@
   "type": "module",
   "main": "app.ts",
   "scripts": {
-    "dev": "node --experimental-strip-types --watch server.ts",
-    "start": "node --experimental-strip-types server.ts",
+    "dev": "node --experimental-strip-types --env-file-if-exists=.env --watch server.ts",
+    "start": "node --experimental-strip-types --env-file-if-exists=.env server.ts",
     "test": "node --experimental-strip-types --test 'test/**/*.test.ts'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
@@ -19,12 +22,18 @@
   },
   "dependencies": {
     "@fastify/autoload": "^6.0.0",
+    "@fastify/env": "^5.0.3",
+    "@fastify/multipart": "^9.4.0",
     "@fastify/sensible": "^6.0.0",
+    "drizzle-orm": "^0.45.1",
     "fastify": "^5.0.0",
-    "fastify-plugin": "^5.0.0"
+    "fastify-plugin": "^5.0.0",
+    "postgres": "^3.4.8",
+    "ulid": "^3.0.2"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "drizzle-kit": "^0.31.10",
     "typescript": "^6.0.2"
   }
 }
