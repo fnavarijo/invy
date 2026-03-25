@@ -1,4 +1,4 @@
-import { Worker, Queue, type Job } from 'bullmq'
+import { Worker, type Job } from 'bullmq'
 import { connection } from './redis.ts'
 import { processJob, type JobPayload } from './processor.ts'
 import { createDb, batches } from '@invy/db'
@@ -22,17 +22,6 @@ const { storage, destroy: destroyStorage } = createStorage({
   secretAccessKey: env.SPACES_SECRET,
   bucket:          env.SPACES_BUCKET,
   forcePathStyle:  false,
-})
-
-// Queue — defines retry policy for all jobs enqueued by the API
-export const queue = new Queue('invoice-processing', {
-  connection,
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: { type: 'exponential', delay: 5_000 },
-    removeOnComplete: { age: 86_400 },   // 24 h
-    removeOnFail:     { age: 604_800 },  // 7 days
-  },
 })
 
 const worker = new Worker<JobPayload>(

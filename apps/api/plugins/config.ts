@@ -3,7 +3,7 @@ import env from '@fastify/env';
 
 const schema = {
   type: 'object',
-  required: ['DATABASE_URL'],
+  required: ['DATABASE_URL', 'REDIS_URL'],
   properties: {
     DATABASE_URL: {
       type: 'string',
@@ -38,6 +38,10 @@ const schema = {
       type: 'string',
       default: 'Secret to connect to DO spaces',
     },
+    REDIS_URL: {
+      type: 'string',
+      description: 'Redis connection string',
+    },
   },
 } as const;
 
@@ -52,6 +56,7 @@ declare module 'fastify' {
       SPACES_BUCKET: string;
       SPACES_KEY: string;
       SPACES_SECRET: string;
+      REDIS_URL: string;
     };
   }
 }

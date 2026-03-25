@@ -29,9 +29,11 @@
     "@fastify/sensible": "^6.0.0",
     "@invy/db": "workspace:*",
     "@invy/storage": "workspace:*",
+    "bullmq": "^5.71.1",
     "drizzle-orm": "^0.45.1",
     "fastify": "^5.0.0",
     "fastify-plugin": "^5.0.0",
+    "ioredis": "^5.10.1",
     "ulid": "^3.0.2"
   },
   "devDependencies": {

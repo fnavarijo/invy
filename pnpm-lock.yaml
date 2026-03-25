@@ -32,6 +32,9 @@ importers:
       '@invy/storage':
         specifier: workspace:*
         version: link:../../packages/storage
+      bullmq:
+        specifier: ^5.71.1
+        version: 5.71.1
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.1(postgres@3.4.8)
@@ -41,6 +44,9 @@ importers:
       fastify-plugin:
         specifier: ^5.0.0
         version: 5.1.0
+      ioredis:
+        specifier: ^5.10.1
+        version: 5.10.1
       ulid:
         specifier: ^3.0.2
         version: 3.0.2

@@ -136,10 +136,19 @@ async function processFilePart(
     created_at: now,
   });
 
-  fastify.log.info(
-    { batchId, fileType, fileName },
-    'queue: batch job enqueued (stub)',
-  );
+  try {
+    await fastify.queue.add('process-invoice', { batchId, fileKey });
+  } catch (err) {
+    // Compensating cleanup: undo the DB insert and storage upload.
+    // Storage delete is best-effort — log failures but don't mask the original error.
+    await fastify.db.delete(batches).where(eq(batches.batch_id, batchId)).catch((dbErr) => {
+      fastify.log.error({ dbErr, batchId }, 'queue: failed to rollback batch row after enqueue failure');
+    });
+    await fastify.storage.delete(fileKey).catch((storageErr) => {
+      fastify.log.error({ storageErr, fileKey }, 'queue: failed to delete orphaned file after enqueue failure');
+    });
+    throw err;
+  }
 
   return reply.status(202).header('Location', `/v1/batches/${batchId}`).send({
     batch_id: batchId,
