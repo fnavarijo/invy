@@ -4,23 +4,57 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Invy** is an invoice processing API for Guatemala's SAT (Sistema de Administración Tributaria) XML invoices. It accepts individual XML files or ZIP archives, processes them asynchronously, and exposes a REST API for querying normalized invoice data.
+**Invy** is an invoice processing platform for Guatemala's SAT XML invoices. It accepts individual XML files or ZIP archives, processes them asynchronously via a worker, and exposes a REST API for querying normalized invoice data.
+
+See `docs/` for detailed specs:
+- `docs/api/api-spec.md` — REST API specification
+- `docs/db/db-spec.md` — PostgreSQL schema and queries
+- `docs/worker/worker-spec.md` — Worker processing spec
+
+## Monorepo Structure
+
+```
+apps/
+  api/      — Fastify 5 HTTP server (TypeScript, Node native strip-types)
+  web/      — Next.js 16 frontend (React 19, Tailwind, shadcn/ui)
+  worker/   — BullMQ worker that parses SAT XML and writes to PostgreSQL
+packages/
+  db/       — Shared Drizzle ORM schema and client (@invy/db)
+  storage/  — S3-compatible storage client via AWS SDK (@invy/storage)
+docker-compose.yml — PostgreSQL 15 + Redis 7 for local development
+```
 
 ## Commands
 
-All commands run from `apps/api/`:
+### API (`apps/api/`)
 
 ```bash
-pnpm dev      # Start with auto-reload (development)
+pnpm dev      # Start with auto-reload
 pnpm start    # Start in production mode
 pnpm test     # Run tests
 ```
 
-Or from the monorepo root using pnpm workspace filtering:
+### Web (`apps/web/`)
+
+```bash
+pnpm dev      # Start Next.js dev server
+pnpm build    # Build for production
+pnpm start    # Start production server
+```
+
+### Worker (`apps/worker/`)
+
+```bash
+pnpm dev      # Start with auto-reload
+pnpm start    # Start in production mode
+```
+
+From the monorepo root using pnpm workspace filtering:
 
 ```bash
 pnpm --filter api dev
-pnpm --filter api test
+pnpm --filter web dev
+pnpm --filter worker dev
 ```
 
 To run a single test file:
@@ -31,58 +65,36 @@ node --test apps/api/test/routes/root.test.js
 
 ## Architecture
 
-### Monorepo Structure
-
-- `apps/api/` — Fastify 5 HTTP server (the only active workspace)
-- `packages/` — Shared packages (currently empty, reserved for future use)
-- `docs/api/api-spec.md` — Complete REST API specification
-- `docs/db/db-spec.md` — PostgreSQL schema, indexes, and analytics queries
-
 ### Request Lifecycle
 
 ```
 Client uploads ZIP/XML
-  → POST /batches (API creates batch record, enqueues job → 202 Accepted)
-  → Worker picks up job, parses XML, populates invoices table, updates batch status
-  → Client polls GET /batches/{batch_id} until status is "done" or "failed"
-  → Client retrieves results via GET /batches/{batch_id}/invoices
+  → POST /v1/batches (API creates batch record, enqueues BullMQ job → 202 Accepted)
+  → Worker picks up job, parses XML, populates invoices table via @invy/db, updates batch status
+  → Client polls GET /v1/batches/{batch_id} until status is "done" or "failed"
+  → Client retrieves results via GET /v1/batches/{batch_id}/invoices
 ```
 
-### Fastify Plugin System
+### Shared Packages
 
-The app uses `@fastify/autoload` to automatically register everything in `plugins/` and `routes/`:
+- **`@invy/db`** — Drizzle ORM schema (`batches`, `invoices` tables) and database client; used by both `api` and `worker`
+- **`@invy/storage`** — S3-compatible client (DigitalOcean Spaces) for storing uploaded files; used by `worker`
 
-- `plugins/sensible.js` — Registers `@fastify/sensible` for HTTP error helpers (`reply.notFound()`, etc.)
+### Fastify Plugin System (`apps/api/`)
+
+Uses `@fastify/autoload` to register everything in `plugins/` and `routes/`:
+
+- `plugins/sensible.js` — `@fastify/sensible` for HTTP error helpers
 - `plugins/support.js` — Custom decorators shared across routes
-- `routes/` — Each file or subdirectory becomes an API route; the file structure mirrors the URL path
-
-### Data Model
-
-Two core PostgreSQL tables (not yet implemented, defined in `docs/db/db-spec.md`):
-
-- **batches** — One record per upload; tracks `status` (queued → processing → done/failed), file metadata, and error summary
-- **invoices** — One record per invoice in a batch; contains normalized fields plus `line_items` (JSONB) and `raw_payload`
-
-Cascade delete: deleting a batch removes all its invoices.
-
-### Async Processing (Not Yet Implemented)
-
-The spec calls for:
-- **Object storage** (DigitalOcean Spaces) for uploaded files
-- **Job queue** for worker coordination
-- **Worker process** that parses SAT XML, validates invoices, and writes to PostgreSQL
-
-### API Conventions
-
-- Base path: `/v1` (not yet enforced in code)
-- Authentication: Bearer token (specified but not yet implemented)
-- Pagination: keyset-based (cursor pagination)
-- File uploads: `multipart/form-data` on `POST /batches`
-- Batch creation returns `202 Accepted` with `Location` header
+- `routes/` — File structure mirrors the URL path
 
 ## Tech Stack
 
-- **Runtime:** Node.js with native `node:test` for testing (no external test runner)
-- **Framework:** Fastify 5
-- **Database:** PostgreSQL 15+ (not yet wired up)
+- **Runtime:** Node.js with native TypeScript strip-types (`--experimental-strip-types`)
+- **API framework:** Fastify 5
+- **Frontend:** Next.js 16, React 19, Tailwind CSS 4, shadcn/ui
+- **Worker queue:** BullMQ + Redis (ioredis)
+- **Database:** PostgreSQL 15+ with Drizzle ORM
+- **XML parsing:** fast-xml-parser
+- **Storage:** AWS SDK v3 (S3-compatible, DigitalOcean Spaces)
 - **Package manager:** pnpm 10 (workspaces)
