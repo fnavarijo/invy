@@ -8,7 +8,7 @@ import multipart, { type MultipartFile } from '@fastify/multipart';
 import { ulid } from 'ulid';
 import { eq, and, ne, desc, asc, sql } from 'drizzle-orm';
 import { batches, invoices } from '@invy/db';
-import type { FileType } from '../../../types/index.ts';
+import type { FileType, TopProductByQuantity, TopProductByRevenue, TopBuyer, AnalyticsResponse } from '../../../types/index.ts';
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
@@ -67,6 +67,10 @@ interface BatchListQuery {
 interface InvoiceListQuery {
   limit?: string;
   cursor?: string;
+}
+
+interface AnalyticsQuery {
+  limit?: string;
 }
 
 async function drainPart(part: { toBuffer(): Promise<Buffer> }): Promise<void> {
@@ -457,6 +461,154 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       }
 
       return reply.send({ batch_id, data, next_cursor });
+    },
+  );
+
+  // ── GET /v1/batches/:batch_id/analytics/top-products-by-quantity ──────────────
+  fastify.get<{ Params: { batch_id: string }; Querystring: AnalyticsQuery }>(
+    '/:batch_id/analytics/top-products-by-quantity',
+    async (
+      request: FastifyRequest<{
+        Params: { batch_id: string };
+        Querystring: AnalyticsQuery;
+      }>,
+      reply: FastifyReply,
+    ) => {
+      const { batch_id } = request.params;
+      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+
+      const [batchRow] = await fastify.db
+        .select({ batch_id: batches.batch_id })
+        .from(batches)
+        .where(eq(batches.batch_id, batch_id))
+        .limit(1);
+
+      if (!batchRow) {
+        return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
+      }
+
+      const rows = await fastify.db.execute<{ product_name: string; total_quantity: string }>(
+        sql`
+          SELECT
+            elem->>'name'                     AS product_name,
+            SUM((elem->>'quantity')::numeric) AS total_quantity
+          FROM ${invoices},
+            jsonb_array_elements(${invoices.line_items}) AS elem
+          WHERE ${invoices.batch_id} = ${batch_id}
+          GROUP BY product_name
+          ORDER BY total_quantity DESC
+          LIMIT ${limit}
+        `,
+      );
+
+      const response: AnalyticsResponse<TopProductByQuantity> = {
+        batch_id,
+        data: rows.map((r) => ({
+          product_name: r.product_name,
+          total_quantity: Number(r.total_quantity).toFixed(2),
+        })),
+      };
+
+      return reply.send(response);
+    },
+  );
+
+  // ── GET /v1/batches/:batch_id/analytics/top-products-by-revenue ───────────────
+  fastify.get<{ Params: { batch_id: string }; Querystring: AnalyticsQuery }>(
+    '/:batch_id/analytics/top-products-by-revenue',
+    async (
+      request: FastifyRequest<{
+        Params: { batch_id: string };
+        Querystring: AnalyticsQuery;
+      }>,
+      reply: FastifyReply,
+    ) => {
+      const { batch_id } = request.params;
+      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+
+      const [batchRow] = await fastify.db
+        .select({ batch_id: batches.batch_id })
+        .from(batches)
+        .where(eq(batches.batch_id, batch_id))
+        .limit(1);
+
+      if (!batchRow) {
+        return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
+      }
+
+      const rows = await fastify.db.execute<{ product_name: string; total_revenue: string }>(
+        sql`
+          SELECT
+            elem->>'name'                  AS product_name,
+            SUM((elem->>'total')::numeric) AS total_revenue
+          FROM ${invoices},
+            jsonb_array_elements(${invoices.line_items}) AS elem
+          WHERE ${invoices.batch_id} = ${batch_id}
+          GROUP BY product_name
+          ORDER BY total_revenue DESC
+          LIMIT ${limit}
+        `,
+      );
+
+      const response: AnalyticsResponse<TopProductByRevenue> = {
+        batch_id,
+        data: rows.map((r) => ({
+          product_name: r.product_name,
+          total_revenue: Number(r.total_revenue).toFixed(2),
+        })),
+      };
+
+      return reply.send(response);
+    },
+  );
+
+  // ── GET /v1/batches/:batch_id/analytics/top-buyers ────────────────────────────
+  fastify.get<{ Params: { batch_id: string }; Querystring: AnalyticsQuery }>(
+    '/:batch_id/analytics/top-buyers',
+    async (
+      request: FastifyRequest<{
+        Params: { batch_id: string };
+        Querystring: AnalyticsQuery;
+      }>,
+      reply: FastifyReply,
+    ) => {
+      const { batch_id } = request.params;
+      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+
+      const [batchRow] = await fastify.db
+        .select({ batch_id: batches.batch_id })
+        .from(batches)
+        .where(eq(batches.batch_id, batch_id))
+        .limit(1);
+
+      if (!batchRow) {
+        return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
+      }
+
+      const rows = await fastify.db
+        .select({
+          client_name: invoices.client_name,
+          client_nit: invoices.client_nit,
+          total_spent: sql<string>`SUM(${invoices.total_amount})::text`,
+          invoice_count: sql<number>`COUNT(*)::int`,
+        })
+        .from(invoices)
+        .where(eq(invoices.batch_id, batch_id))
+        .groupBy(invoices.client_name, invoices.client_nit)
+        .orderBy(sql`SUM(${invoices.total_amount}) DESC`)
+        .limit(limit);
+
+      const response: AnalyticsResponse<TopBuyer> = {
+        batch_id,
+        data: rows.map((r) => ({
+          client_name: r.client_name,
+          client_nit: r.client_nit,
+          total_spent: Number(r.total_spent).toFixed(2),
+          invoice_count: r.invoice_count,
+        })),
+      };
+
+      return reply.send(response);
     },
   );
 };

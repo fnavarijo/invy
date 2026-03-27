@@ -76,6 +76,28 @@ export interface InvoicePaginatedResponse extends PaginatedResponse<InvoiceListI
   batch_id?: string
 }
 
+export interface TopProductByQuantity {
+  product_name: string
+  total_quantity: string
+}
+
+export interface TopProductByRevenue {
+  product_name: string
+  total_revenue: string
+}
+
+export interface TopBuyer {
+  client_name: string
+  client_nit: string
+  total_spent: string
+  invoice_count: number
+}
+
+export interface AnalyticsResponse<T> {
+  batch_id: string
+  data: T[]
+}
+
 export type ErrorCode =
   | 'MISSING_FIELD'
   | 'INVALID_PARAM'
