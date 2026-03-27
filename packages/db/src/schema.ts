@@ -7,6 +7,7 @@ import {
   jsonb,
   numeric,
   char,
+  index,
 } from 'drizzle-orm/pg-core'
 import { type InferSelectModel } from 'drizzle-orm'
 import type { LineItem } from './types.ts'
@@ -18,25 +19,32 @@ export const batchStatusEnum = pgEnum('batch_status', [
   'failed',
 ])
 
-export const batches = pgTable('batches', {
-  batch_id: text('batch_id').primaryKey(),
-  status: batchStatusEnum('status').notNull().default('queued'),
-  file_type: text('file_type').notNull(),
-  file_name: text('file_name').notNull(),
-  file_key: text('file_key').notNull(),
-  source: text('source'),
-  invoice_count: integer('invoice_count'),
-  failed_count: integer('failed_count'),
-  errors: jsonb('errors')
-    .$type<Array<{ file_name: string; reason: string }>>()
-    .notNull()
-    .default([]),
-  created_at: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  completed_at: timestamp('completed_at', { withTimezone: true }),
-  file_deleted_at: timestamp('file_deleted_at', { withTimezone: true }),
-})
+export const batches = pgTable(
+  'batches',
+  {
+    batch_id: text('batch_id').primaryKey(),
+    status: batchStatusEnum('status').notNull().default('queued'),
+    file_type: text('file_type').notNull(),
+    file_name: text('file_name').notNull(),
+    file_key: text('file_key').notNull(),
+    source: text('source'),
+    user_id: text('user_id').notNull(),
+    invoice_count: integer('invoice_count'),
+    failed_count: integer('failed_count'),
+    errors: jsonb('errors')
+      .$type<Array<{ file_name: string; reason: string }>>()
+      .notNull()
+      .default([]),
+    created_at: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    completed_at: timestamp('completed_at', { withTimezone: true }),
+    file_deleted_at: timestamp('file_deleted_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('batches_user_id_created_at_idx').on(table.user_id, table.created_at, table.batch_id),
+  ],
+)
 
 export const invoices = pgTable('invoices', {
   invoice_id: text('invoice_id').primaryKey(),

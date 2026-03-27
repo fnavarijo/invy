@@ -8,6 +8,7 @@ import multipart, { type MultipartFile } from '@fastify/multipart';
 import { ulid } from 'ulid';
 import { eq, and, ne, desc, asc, sql } from 'drizzle-orm';
 import { batches, invoices } from '@invy/db';
+import { getAuth } from '@clerk/fastify';
 import type { FileType, TopProductByQuantity, TopProductByRevenue, TopBuyer, AnalyticsResponse } from '../../../types/index.ts';
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts';
 
@@ -77,10 +78,24 @@ async function drainPart(part: { toBuffer(): Promise<Buffer> }): Promise<void> {
   await part.toBuffer().catch(() => {});
 }
 
+async function assertBatchOwner(
+  db: FastifyInstance['db'],
+  batch_id: string,
+  user_id: string,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ batch_id: batches.batch_id })
+    .from(batches)
+    .where(and(eq(batches.batch_id, batch_id), eq(batches.user_id, user_id)))
+    .limit(1);
+  return row !== undefined;
+}
+
 async function processFilePart(
   fastify: FastifyInstance,
   part: MultipartFile,
   source: string | null,
+  userId: string,
   reply: FastifyReply,
 ): Promise<object | null> {
   const fileName = part.filename ?? 'upload';
@@ -136,6 +151,7 @@ async function processFilePart(
     file_name: fileName,
     file_key: fileKey,
     source: source ?? null,
+    user_id: userId,
     errors: [],
     created_at: now,
   });
@@ -184,6 +200,9 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           );
       }
 
+      const { userId } = getAuth(request);
+      const ownerId = userId!;
+
       let fileFound = false;
       // NOTE: "source" must arrive before "file" in the multipart body so it
       // is available when processFilePart builds the DB record.
@@ -197,6 +216,7 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
               fastify,
               part as MultipartFile,
               source,
+              ownerId,
               reply,
             );
           } else if (part.type === 'field' && part.fieldname === 'source') {
@@ -261,7 +281,10 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
         }
       }
 
-      const conditions = [];
+      const { userId } = getAuth(request);
+      const ownerId = userId!;
+
+      const conditions = [eq(batches.user_id, ownerId)];
       if (status)
         conditions.push(
           eq(
@@ -278,7 +301,7 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const rows = await fastify.db
         .select(batchListColumns)
         .from(batches)
-        .where(conditions.length ? and(...conditions) : undefined)
+        .where(and(...conditions))
         .orderBy(desc(batches.created_at), desc(batches.batch_id))
         .limit(limit + 1);
 
@@ -303,11 +326,13 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       reply: FastifyReply,
     ) => {
       const { batch_id } = request.params;
+      const { userId } = getAuth(request);
+      const ownerId = userId!;
 
       const [batch] = await fastify.db
         .select(batchDetailColumns)
         .from(batches)
-        .where(eq(batches.batch_id, batch_id))
+        .where(and(eq(batches.batch_id, batch_id), eq(batches.user_id, ownerId)))
         .limit(1);
 
       if (!batch) {
@@ -328,12 +353,14 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       reply: FastifyReply,
     ) => {
       const { batch_id } = request.params;
+      const { userId } = getAuth(request);
+      const ownerId = userId!;
 
       // Fast existence check before attempting deletion
       const [existing] = await fastify.db
         .select({ status: batches.status })
         .from(batches)
-        .where(eq(batches.batch_id, batch_id))
+        .where(and(eq(batches.batch_id, batch_id), eq(batches.user_id, ownerId)))
         .limit(1);
 
       if (!existing) {
@@ -357,7 +384,7 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const deleted = await fastify.db
         .delete(batches)
         .where(
-          and(eq(batches.batch_id, batch_id), ne(batches.status, 'processing')),
+          and(eq(batches.batch_id, batch_id), eq(batches.user_id, ownerId), ne(batches.status, 'processing')),
         )
         .returning({ batch_id: batches.batch_id, file_key: batches.file_key });
 
@@ -414,16 +441,9 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const limit = Math.min(limitRaw, 200);
       const { cursor } = request.query;
 
-      const [batchRow] = await fastify.db
-        .select({ batch_id: batches.batch_id })
-        .from(batches)
-        .where(eq(batches.batch_id, batch_id))
-        .limit(1);
-
-      if (!batchRow) {
-        return reply
-          .status(404)
-          .send(buildError('NOT_FOUND', 'Batch not found.'));
+      const { userId } = getAuth(request);
+      if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
+        return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
       }
 
       let decoded = null;
@@ -477,13 +497,8 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const { batch_id } = request.params;
       const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
 
-      const [batchRow] = await fastify.db
-        .select({ batch_id: batches.batch_id })
-        .from(batches)
-        .where(eq(batches.batch_id, batch_id))
-        .limit(1);
-
-      if (!batchRow) {
+      const { userId } = getAuth(request);
+      if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
         return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
       }
 
@@ -526,13 +541,8 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const { batch_id } = request.params;
       const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
 
-      const [batchRow] = await fastify.db
-        .select({ batch_id: batches.batch_id })
-        .from(batches)
-        .where(eq(batches.batch_id, batch_id))
-        .limit(1);
-
-      if (!batchRow) {
+      const { userId } = getAuth(request);
+      if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
         return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
       }
 
@@ -575,13 +585,8 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const { batch_id } = request.params;
       const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
 
-      const [batchRow] = await fastify.db
-        .select({ batch_id: batches.batch_id })
-        .from(batches)
-        .where(eq(batches.batch_id, batch_id))
-        .limit(1);
-
-      if (!batchRow) {
+      const { userId } = getAuth(request);
+      if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
         return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
       }
 
