@@ -9,7 +9,14 @@ import { ulid } from 'ulid';
 import { eq, and, ne, desc, asc, sql } from 'drizzle-orm';
 import { batches, invoices } from '@invy/db';
 import { getAuth } from '@clerk/fastify';
-import type { FileType, TopProductByQuantity, TopProductByRevenue, TopBuyer, AnalyticsResponse } from '../../../types/index.ts';
+import ExcelJS from 'exceljs';
+import type {
+  FileType,
+  TopProductByQuantity,
+  TopProductByRevenue,
+  TopBuyer,
+  AnalyticsResponse,
+} from '../../../types/index.ts';
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
@@ -161,11 +168,20 @@ async function processFilePart(
   } catch (err) {
     // Compensating cleanup: undo the DB insert and storage upload.
     // Storage delete is best-effort — log failures but don't mask the original error.
-    await fastify.db.delete(batches).where(eq(batches.batch_id, batchId)).catch((dbErr) => {
-      fastify.log.error({ dbErr, batchId }, 'queue: failed to rollback batch row after enqueue failure');
-    });
+    await fastify.db
+      .delete(batches)
+      .where(eq(batches.batch_id, batchId))
+      .catch((dbErr) => {
+        fastify.log.error(
+          { dbErr, batchId },
+          'queue: failed to rollback batch row after enqueue failure',
+        );
+      });
     await fastify.storage.delete(fileKey).catch((storageErr) => {
-      fastify.log.error({ storageErr, fileKey }, 'queue: failed to delete orphaned file after enqueue failure');
+      fastify.log.error(
+        { storageErr, fileKey },
+        'queue: failed to delete orphaned file after enqueue failure',
+      );
     });
     throw err;
   }
@@ -332,7 +348,9 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const [batch] = await fastify.db
         .select(batchDetailColumns)
         .from(batches)
-        .where(and(eq(batches.batch_id, batch_id), eq(batches.user_id, ownerId)))
+        .where(
+          and(eq(batches.batch_id, batch_id), eq(batches.user_id, ownerId)),
+        )
         .limit(1);
 
       if (!batch) {
@@ -360,7 +378,9 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const [existing] = await fastify.db
         .select({ status: batches.status })
         .from(batches)
-        .where(and(eq(batches.batch_id, batch_id), eq(batches.user_id, ownerId)))
+        .where(
+          and(eq(batches.batch_id, batch_id), eq(batches.user_id, ownerId)),
+        )
         .limit(1);
 
       if (!existing) {
@@ -384,7 +404,11 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const deleted = await fastify.db
         .delete(batches)
         .where(
-          and(eq(batches.batch_id, batch_id), eq(batches.user_id, ownerId), ne(batches.status, 'processing')),
+          and(
+            eq(batches.batch_id, batch_id),
+            eq(batches.user_id, ownerId),
+            ne(batches.status, 'processing'),
+          ),
         )
         .returning({ batch_id: batches.batch_id, file_key: batches.file_key });
 
@@ -443,7 +467,9 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
 
       const { userId } = getAuth(request);
       if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
-        return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
+        return reply
+          .status(404)
+          .send(buildError('NOT_FOUND', 'Batch not found.'));
       }
 
       let decoded = null;
@@ -484,6 +510,109 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
     },
   );
 
+  // ── GET /v1/batches/:batch_id/export/xlsx ────────────────────────────────────
+  fastify.get<{ Params: { batch_id: string } }>(
+    '/:batch_id/export/xlsx',
+    async (
+      request: FastifyRequest<{ Params: { batch_id: string } }>,
+      reply: FastifyReply,
+    ) => {
+      const { batch_id } = request.params;
+      const { userId } = getAuth(request);
+
+      if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
+        return reply
+          .status(404)
+          .send(buildError('NOT_FOUND', 'Batch not found.'));
+      }
+
+      const rows = await fastify.db
+        .select({
+          invoice_number: invoices.invoice_number,
+          type: invoices.type,
+          currency: invoices.currency,
+          total_amount: invoices.total_amount,
+          issued_at: invoices.issued_at,
+          issuer_name: invoices.issuer_name,
+          issuer_nit: invoices.issuer_nit,
+          client_name: invoices.client_name,
+          client_nit: invoices.client_nit,
+          line_items: invoices.line_items,
+          source_file: invoices.source_file,
+        })
+        .from(invoices)
+        .where(eq(invoices.batch_id, batch_id))
+        .orderBy(asc(invoices.issued_at), asc(invoices.invoice_id));
+
+      const workbook = new ExcelJS.Workbook();
+
+      // Sheet 1 — one row per invoice
+      const invoiceSheet = workbook.addWorksheet('Invoices');
+      invoiceSheet.columns = [
+        { header: 'Numero de factura', key: 'invoice_number', width: 22 },
+        { header: 'Tipo', key: 'type', width: 14 },
+        { header: 'Moneda', key: 'currency', width: 10 },
+        { header: 'Valor Total', key: 'total_amount', width: 16 },
+        { header: 'Fecha Generacion', key: 'issued_at', width: 24 },
+        { header: 'Nombre emisor', key: 'issuer_name', width: 32 },
+        { header: 'NIT emisor', key: 'issuer_nit', width: 16 },
+        { header: 'Nombre cliente', key: 'client_name', width: 32 },
+        { header: 'NIT cliente', key: 'client_nit', width: 16 },
+        { header: 'Archivo', key: 'source_file', width: 28 },
+      ];
+
+      for (const row of rows) {
+        invoiceSheet.addRow({
+          invoice_number: row.invoice_number,
+          type: row.type,
+          currency: row.currency,
+          total_amount: Number(row.total_amount),
+          issued_at: new Date(row.issued_at).toISOString(),
+          issuer_name: row.issuer_name,
+          issuer_nit: row.issuer_nit,
+          client_name: row.client_name,
+          client_nit: row.client_nit,
+          source_file: row.source_file,
+        });
+      }
+
+      // Sheet 2 — one row per line item, referencing invoice_number
+      const lineItemsSheet = workbook.addWorksheet('Line Items');
+      lineItemsSheet.columns = [
+        { header: 'Invoice Number', key: 'invoice_number', width: 22 },
+        { header: 'Item Name', key: 'name', width: 36 },
+        { header: 'Type', key: 'type', width: 14 },
+        { header: 'Quantity', key: 'quantity', width: 12 },
+        { header: 'Unit Price', key: 'unit_price', width: 16 },
+        { header: 'Total', key: 'total', width: 16 },
+      ];
+
+      for (const row of rows) {
+        for (const item of row.line_items ?? []) {
+          lineItemsSheet.addRow({
+            invoice_number: row.invoice_number,
+            name: item.name,
+            type: item.type,
+            quantity: item.quantity,
+            unit_price: Number(item.unit_price),
+            total: Number(item.total),
+          });
+        }
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const fileName = `batch_${batch_id}_invoices.xlsx`;
+
+      return reply
+        .header(
+          'Content-Type',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .send(Buffer.from(buffer));
+    },
+  );
+
   // ── GET /v1/batches/:batch_id/analytics/top-products-by-quantity ──────────────
   fastify.get<{ Params: { batch_id: string }; Querystring: AnalyticsQuery }>(
     '/:batch_id/analytics/top-products-by-quantity',
@@ -495,14 +624,22 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       reply: FastifyReply,
     ) => {
       const { batch_id } = request.params;
-      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+      const limit = Math.min(
+        parseInt(request.query.limit ?? '10', 10) || 10,
+        50,
+      );
 
       const { userId } = getAuth(request);
       if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
-        return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
+        return reply
+          .status(404)
+          .send(buildError('NOT_FOUND', 'Batch not found.'));
       }
 
-      const rows = await fastify.db.execute<{ product_name: string; total_quantity: string }>(
+      const rows = await fastify.db.execute<{
+        product_name: string;
+        total_quantity: string;
+      }>(
         sql`
           SELECT
             elem->>'name'                     AS product_name,
@@ -539,14 +676,22 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       reply: FastifyReply,
     ) => {
       const { batch_id } = request.params;
-      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+      const limit = Math.min(
+        parseInt(request.query.limit ?? '10', 10) || 10,
+        50,
+      );
 
       const { userId } = getAuth(request);
       if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
-        return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
+        return reply
+          .status(404)
+          .send(buildError('NOT_FOUND', 'Batch not found.'));
       }
 
-      const rows = await fastify.db.execute<{ product_name: string; total_revenue: string }>(
+      const rows = await fastify.db.execute<{
+        product_name: string;
+        total_revenue: string;
+      }>(
         sql`
           SELECT
             elem->>'name'                  AS product_name,
@@ -583,11 +728,16 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       reply: FastifyReply,
     ) => {
       const { batch_id } = request.params;
-      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+      const limit = Math.min(
+        parseInt(request.query.limit ?? '10', 10) || 10,
+        50,
+      );
 
       const { userId } = getAuth(request);
       if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
-        return reply.status(404).send(buildError('NOT_FOUND', 'Batch not found.'));
+        return reply
+          .status(404)
+          .send(buildError('NOT_FOUND', 'Batch not found.'));
       }
 
       const rows = await fastify.db
