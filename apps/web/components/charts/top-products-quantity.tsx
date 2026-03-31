@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import {
   BarChart,
@@ -7,26 +7,28 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-} from "recharts"
+} from 'recharts';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { ChartEmpty } from "@/components/charts/chart-empty"
-import type { TopProductByQuantityItem } from "@/lib/api/analytics"
+} from '@/components/ui/card';
+import { ChartEmpty } from '@/components/charts/chart-empty';
+import type { TopProductByQuantityItem } from '@/lib/api/analytics';
 
-type Props = { data: TopProductByQuantityItem[] }
+type Props = { data: TopProductByQuantityItem[] };
 
 export function TopProductsQuantity({ data }: Props) {
+  // I could stream here the result
+
   const chartData = data
     .map((item) => ({
       name: item.product_name,
       value: parseFloat(item.total_quantity),
     }))
-    .filter((item) => !isNaN(item.value))
+    .filter((item) => !isNaN(item.value));
 
   return (
     <Card>
@@ -50,27 +52,29 @@ export function TopProductsQuantity({ data }: Props) {
                 width={140}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
+                tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }}
               />
               <XAxis
                 type="number"
                 tickLine={false}
                 axisLine={false}
                 allowDecimals={false}
-                tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
+                tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }}
               />
               <Tooltip
                 contentStyle={{
-                  background: "var(--color-card)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.75rem",
+                  background: 'var(--color-card)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.75rem',
                 }}
-                cursor={{ fill: "var(--color-muted)", opacity: 0.5 }}
+                cursor={{ fill: 'var(--color-muted)', opacity: 0.5 }}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(value: any) => [
-                  typeof value === "number" ? value.toLocaleString() : String(value),
-                  "Units",
+                  typeof value === 'number'
+                    ? value.toLocaleString()
+                    : String(value),
+                  'Units',
                 ]}
               />
               <Bar
@@ -83,5 +87,5 @@ export function TopProductsQuantity({ data }: Props) {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
