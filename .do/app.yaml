@@ -1,14 +1,26 @@
 name: invy
+
 services:
-  - environment_slug: api
-    name: invy-api
+  - name: invy-api
     github:
       branch: main
       deploy_on_push: true
       repo: fnavarijo/invy
-  - environment_slug: worker
-    name: invy-worker
+    source_dir: /
+    dockerfile_path: apps/api/Dockerfile
+    http_port: 3000
+    health_check:
+      http_path: /
+      initial_delay_seconds: 15
+      period_seconds: 30
+      timeout_seconds: 5
+      failure_threshold: 3
+
+workers:
+  - name: invy-worker
     github:
       branch: main
       deploy_on_push: true
       repo: fnavarijo/invy
+    source_dir: /
+    dockerfile_path: apps/worker/Dockerfile
