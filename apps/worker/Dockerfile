@@ -27,6 +27,9 @@ COPY apps/worker  ./apps/worker
 COPY packages/db      ./packages/db
 COPY packages/storage ./packages/storage
 
+# Compile shared packages to JS before deploying.
+RUN pnpm --filter @invy/db build && pnpm --filter @invy/storage build
+
 RUN pnpm deploy --filter=./apps/worker --prod /prod/worker
 
 # ── Runner ────────────────────────────────────────────────────────────────────
