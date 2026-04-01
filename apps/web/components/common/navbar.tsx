@@ -1,4 +1,5 @@
 import { Separator } from '@/components/ui/separator';
+import { NavbarActions } from '@/components/common/navbar-actions';
 
 export function Navbar() {
   return (
@@ -15,6 +16,7 @@ export function Navbar() {
         </a>
         <Separator orientation="vertical" className="h-4" aria-hidden="true" />
         <p className="text-sm text-muted-foreground">Invoice Processing</p>
+        <NavbarActions />
       </nav>
     </header>
   );

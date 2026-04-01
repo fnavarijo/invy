@@ -5,6 +5,7 @@ import { UploadCloud, FileArchive, FileText, X, Loader2, CheckCircle2, AlertCirc
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { useRouter } from "next/navigation"
 import { useBatchUpload } from "@/lib/hooks/use-batch-upload"
 
 type UploadedFile = {
@@ -34,7 +35,8 @@ export function UploadZone() {
   const [error, setError] = React.useState<string | null>(null)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
-  const { state, upload, reset } = useBatchUpload()
+  const router = useRouter()
+  const { state, upload, reset } = useBatchUpload({ onComplete: () => router.refresh() })
 
   const isBusy = state.phase === "uploading" || state.phase === "polling"
   const isFinished = state.phase === "done" || state.phase === "failed"

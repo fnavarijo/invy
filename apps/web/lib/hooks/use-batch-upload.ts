@@ -1,10 +1,11 @@
 import { useReducer, useRef, useCallback, useEffect } from 'react';
 import {
   getBatch,
-  ApiError,
   type BatchCreateResponse,
   type BatchDetailResponse,
 } from '@/lib/api/batches';
+import { ApiError } from '@/lib/api/helpers';
+import { useAuth } from '@clerk/nextjs';
 
 // ---------------------------------------------------------------------------
 // State machine types
@@ -66,7 +67,7 @@ const MAX_NETWORK_RETRIES = 3;
 // Hook
 // ---------------------------------------------------------------------------
 
-export function useBatchUpload(): {
+export function useBatchUpload(options?: { onComplete?: () => void }): {
   state: UploadState;
   upload: (file: File, source?: string) => void;
   reset: () => void;
@@ -79,6 +80,13 @@ export function useBatchUpload(): {
   const networkRetryCountRef = useRef(0);
   // Guards async dispatch calls after unmount
   const mountedRef = useRef(true);
+  const onCompleteRef = useRef(options?.onComplete);
+  const { getToken } = useAuth();
+
+  // Keep ref in sync with latest callback without re-running effects
+  useEffect(() => {
+    onCompleteRef.current = options?.onComplete;
+  });
 
   // ------------------------------------------------------------------
   // Cleanup helpers — stable references via useCallback
@@ -135,6 +143,7 @@ export function useBatchUpload(): {
 
           if (detail.status === 'done') {
             dispatch({ type: 'POLL_DONE', batch: detail });
+            onCompleteRef.current?.();
             return;
           }
 
@@ -147,6 +156,7 @@ export function useBatchUpload(): {
                   : 'Batch processing failed.',
               batch: detail,
             });
+            onCompleteRef.current?.();
             return;
           }
 
@@ -191,7 +201,7 @@ export function useBatchUpload(): {
   // ------------------------------------------------------------------
 
   const upload = useCallback(
-    (file: File, source?: string) => {
+    async (file: File, source?: string) => {
       cancelPoll();
       abortInFlight();
       networkRetryCountRef.current = 0;
@@ -213,11 +223,8 @@ export function useBatchUpload(): {
 
       xhr.open('POST', `${apiBase}/v1/batches`);
 
-      const token =
-        typeof window !== 'undefined'
-          ? (window as Window & { __INVY_TOKEN__?: string }).__INVY_TOKEN__
-          : undefined;
-      console.log('Token', token);
+      const token = await getToken();
+
       if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 
       xhr.upload.onprogress = (event: ProgressEvent) => {

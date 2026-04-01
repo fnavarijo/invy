@@ -1,12 +1,8 @@
-'use client';
-
-import * as React from 'react';
+import { auth } from '@clerk/nextjs/server';
 import { FileArchive, FileText, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useBatchList } from '@/lib/hooks/use-batch-list';
-import { useBatchRefresh } from '@/components/batches/batch-refresh-context';
-import type { BatchStatus } from '@/lib/api/batches';
+import { listBatches, type BatchListItem, type BatchStatus } from '@/lib/api/batches';
 
 const MAX_ROWS = 10;
 const SKELETON_COUNT = 5;
@@ -20,10 +16,10 @@ function getStatusStyle(status: BatchStatus): React.CSSProperties {
 }
 
 const STATUS_LABELS: Record<BatchStatus, string> = {
-  queued: 'Queued',
-  processing: 'Processing',
-  done: 'Done',
-  failed: 'Failed',
+  queued: 'En cola',
+  processing: 'Procesando',
+  done: 'Completado',
+  failed: 'Fallido',
 };
 
 function formatRelativeDate(dateStr: string): string {
@@ -35,11 +31,11 @@ function formatRelativeDate(dateStr: string): string {
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffSecs < 60) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 30) return `${diffDays}d ago`;
+  if (diffSecs < 60) return 'Ahora mismo';
+  if (diffMins < 60) return `hace ${diffMins}m`;
+  if (diffHours < 24) return `hace ${diffHours}h`;
+  if (diffDays === 1) return 'Ayer';
+  if (diffDays < 30) return `hace ${diffDays}d`;
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
@@ -60,72 +56,82 @@ function SkeletonRow() {
   );
 }
 
-export function BatchHistory() {
-  const { data, loading, error, refetch } = useBatchList();
-  const { registerRefetch } = useBatchRefresh();
+export function BatchHistorySkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Lotes recientes</CardTitle>
+        <CardDescription>Tus últimas {MAX_ROWS} cargas</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-0 pb-0">
+        {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+          <SkeletonRow key={i} />
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
-  React.useEffect(() => {
-    registerRefetch(refetch);
-  }, [registerRefetch, refetch]);
+export async function BatchHistory() {
+  const { getToken } = await auth();
+  const authToken = await getToken();
 
-  if (error !== null) {
+  let batches: BatchListItem[] = [];
+  let fetchError: string | null = null;
+
+  try {
+    const res = await listBatches({ authToken });
+    batches = res.data;
+  } catch {
+    fetchError = 'No se pudieron cargar los lotes recientes.';
+  }
+
+  if (fetchError) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent batches</CardTitle>
-          <CardDescription>Your last {MAX_ROWS} uploads</CardDescription>
+          <CardTitle>Lotes recientes</CardTitle>
+          <CardDescription>Tus últimas {MAX_ROWS} cargas</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
             <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive">{fetchError}</p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  if (loading) {
+  if (batches.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent batches</CardTitle>
-          <CardDescription>Your last {MAX_ROWS} uploads</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-0 pb-0">
-          {Array.from({ length: SKELETON_COUNT }).map((_, i) => <SkeletonRow key={i} />)}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (data !== null && data.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent batches</CardTitle>
-          <CardDescription>Your last {MAX_ROWS} uploads</CardDescription>
+          <CardTitle>Lotes recientes</CardTitle>
+          <CardDescription>Tus últimas {MAX_ROWS} cargas</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="rounded-lg bg-muted px-4 py-8 text-center">
-            <p className="text-sm font-medium text-foreground">No batches yet</p>
-            <p className="mt-1 text-sm text-muted-foreground">Upload your first SAT XML file or ZIP archive above to get started.</p>
+            <p className="text-sm font-medium text-foreground">Aún no hay lotes</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Sube tu primer archivo SAT XML o ZIP para comenzar.
+            </p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const rows = (data ?? []).slice(0, MAX_ROWS);
+  const rows = batches.slice(0, MAX_ROWS);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent batches</CardTitle>
-        <CardDescription>Your last {MAX_ROWS} uploads</CardDescription>
+        <CardTitle>Lotes recientes</CardTitle>
+        <CardDescription>Tus últimas {MAX_ROWS} cargas</CardDescription>
       </CardHeader>
       <CardContent className="pt-0 pb-0">
-        <ul aria-label="Recent batches">
+        <ul aria-label="Lotes recientes">
           {rows.map((batch) => (
             <li key={batch.batch_id} className="border-b last:border-b-0">
               <a
@@ -133,12 +139,14 @@ export function BatchHistory() {
                 className="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
               >
                 <FileIcon fileType={batch.file_type} />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{batch.file_name}</span>
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                  {batch.file_name}
+                </span>
                 <Badge variant="outline" style={getStatusStyle(batch.status)} className="shrink-0 text-xs">
                   {STATUS_LABELS[batch.status]}
                 </Badge>
                 <span className="hidden sm:block shrink-0 w-16 text-right text-sm text-muted-foreground tabular-nums">
-                  {batch.invoice_count !== null ? `${batch.invoice_count} inv.` : '—'}
+                  {batch.invoice_count !== null ? `${batch.invoice_count} fact.` : '—'}
                 </span>
                 <span className="hidden sm:block shrink-0 w-20 text-right text-sm text-muted-foreground">
                   {formatRelativeDate(batch.created_at)}
