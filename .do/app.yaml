@@ -1,0 +1,14 @@
+name: invy
+services:
+  - environment_slug: api
+    name: invy-api
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: fnavarijo/invy
+  - environment_slug: worker
+    name: invy-worker
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: fnavarijo/invy
