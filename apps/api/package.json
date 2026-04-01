@@ -1,5 +1,5 @@
 {
-  "name": "apps",
+  "name": "api",
   "version": "1.0.0",
   "description": "Invy API built with Fastify",
   "type": "module",

@@ -1,0 +1,45 @@
+# Dependencies — never copy node_modules; Docker installs them inside the build
+node_modules
+**/node_modules
+
+# Next.js build output
+apps/web/.next
+apps/web/out
+
+# Environment files — injected at runtime via secrets/env, never baked in
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+
+# Version control
+.git
+.gitignore
+
+# Editor and OS artifacts
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Test files — not needed in production images
+**/test
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
+
+# Docs and local tooling
+docs/
+skills-lock.json
+CLAUDE.md
+**/README.md
+
+# Drizzle migration studio / generated files (not needed at runtime)
+**/drizzle.config.ts
+apps/api/db/
+
+# pnpm debug logs
+pnpm-debug.log*
