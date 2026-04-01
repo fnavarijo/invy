@@ -55,25 +55,25 @@ export async function BatchHeader({ paramsPromise }: BatchHeaderProps) {
         <CardContent className="pt-6">
           <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
             <div>
-              <dt className="text-xs text-muted-foreground">Batch ID</dt>
+              <dt className="text-xs text-muted-foreground">ID de lote</dt>
               <dd className="mt-1 font-mono text-xs text-foreground break-all">
                 {batch.batch_id}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Invoice count</dt>
+              <dt className="text-xs text-muted-foreground">Facturas</dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
                 {batch.invoice_count ?? '—'}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Failed count</dt>
+              <dt className="text-xs text-muted-foreground">Fallidas</dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
                 {batch.failed_count ?? '—'}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Created at</dt>
+              <dt className="text-xs text-muted-foreground">Creado el</dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
                 {formatDate(batch.created_at)}
               </dd>
@@ -86,8 +86,8 @@ export async function BatchHeader({ paramsPromise }: BatchHeaderProps) {
       {batch.status !== 'done' && (
         <div className="mt-4 rounded-lg bg-muted px-4 py-3">
           <p className="text-sm text-muted-foreground">
-            Analytics are available once the batch has finished processing.
-            Current status:{' '}
+            El análisis estará disponible una vez que el lote termine de procesarse.
+            Estado actual:{' '}
             <span className="font-medium text-foreground">{batch.status}</span>.
           </p>
         </div>

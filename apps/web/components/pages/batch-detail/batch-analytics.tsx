@@ -38,10 +38,10 @@ export async function BatchAnalytics({ paramsPromise }: BatchAnalyticsProps) {
     <section aria-labelledby="analytics-heading">
       <div className="mb-6">
         <Text size="h2" id="analytics-heading">
-          Analytics
+          Análisis
         </Text>
         <Text size="body" className="text-muted-foreground">
-          Top products and buyers for this batch.
+          Productos y compradores principales de este lote.
         </Text>
       </div>
 

@@ -16,7 +16,7 @@ export default async function BatchDetailRoute({
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
-          Back to dashboard
+          Volver al inicio
         </a>
 
         <BatchHeader paramsPromise={params} />
