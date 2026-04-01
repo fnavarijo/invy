@@ -137,7 +137,11 @@ export function useBatchUpload(options?: { onComplete?: () => void }): {
         abortControllerRef.current = ac;
 
         try {
-          const detail = await getBatch(batchId, ac.signal);
+          const token = await getToken();
+          const detail = await getBatch(batchId, {
+            signal: ac.signal,
+            authToken: token,
+          });
 
           if (!mountedRef.current) return;
 
