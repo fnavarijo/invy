@@ -1,4 +1,4 @@
-export { createStorage } from './client.ts'
+export { createStorage } from './client.js'
 export {
   StorageError,
   type StorageClient,
@@ -6,4 +6,4 @@ export {
   type StorageInstance,
   type UploadOptions,
   type UploadHandle,
-} from './types.ts'
+} from './types.js'

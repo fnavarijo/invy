@@ -8,7 +8,7 @@ import {
   type StorageInstance,
   type UploadOptions,
   type UploadHandle,
-} from './types.ts'
+} from './types.js'
 
 export function createStorage(config: StorageConfig): StorageInstance {
   const client = new S3Client({

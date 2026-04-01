@@ -10,7 +10,7 @@ import {
   index,
 } from 'drizzle-orm/pg-core'
 import { type InferSelectModel } from 'drizzle-orm'
-import type { LineItem } from './types.ts'
+import type { LineItem } from './types.js'
 
 export const batchStatusEnum = pgEnum('batch_status', [
   'queued',

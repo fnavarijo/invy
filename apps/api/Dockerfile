@@ -40,7 +40,11 @@ COPY apps/api     ./apps/api
 COPY packages/db      ./packages/db
 COPY packages/storage ./packages/storage
 
-# 5. Produce a standalone deployment directory for the API.
+# 5. Compile shared packages to JS so the deployed bundle contains plain JS
+#    that Node can load without --experimental-strip-types on node_modules.
+RUN pnpm --filter @invy/db build && pnpm --filter @invy/storage build
+
+# 6. Produce a standalone deployment directory for the API.
 #    pnpm deploy --prod:
 #      • copies the app's source files
 #      • copies workspace deps (@invy/db, @invy/storage) as real files into
