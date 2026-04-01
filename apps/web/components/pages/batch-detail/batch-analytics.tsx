@@ -12,6 +12,7 @@ import {
   type TopProductByRevenueItem,
   type TopBuyerItem,
 } from '@/lib/api/analytics';
+import { Text } from '@/components/ui/text';
 
 function ChartSkeleton() {
   return <div className="h-85 animate-pulse rounded-xl bg-muted" />;
@@ -34,22 +35,33 @@ export async function BatchAnalytics({ paramsPromise }: BatchAnalyticsProps) {
     ]);
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-      <Suspense fallback={<ChartSkeleton />}>
-        <TopProductsQuantity
-          data={analyticsQuantity.data as TopProductByQuantityItem[]}
-        />
-      </Suspense>
+    <section aria-labelledby="analytics-heading">
+      <div className="mb-6">
+        <Text size="h2" id="analytics-heading">
+          Analytics
+        </Text>
+        <Text size="body" className="text-muted-foreground">
+          Top products and buyers for this batch.
+        </Text>
+      </div>
 
-      <Suspense fallback={<ChartSkeleton />}>
-        <TopProductsRevenue
-          data={analyticsRevenue.data as TopProductByRevenueItem[]}
-        />
-      </Suspense>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+        <Suspense fallback={<ChartSkeleton />}>
+          <TopProductsQuantity
+            data={analyticsQuantity.data as TopProductByQuantityItem[]}
+          />
+        </Suspense>
 
-      <Suspense fallback={<ChartSkeleton />}>
-        <TopBuyers data={analyticsBuyers.data as TopBuyerItem[]} />
-      </Suspense>
-    </div>
+        <Suspense fallback={<ChartSkeleton />}>
+          <TopProductsRevenue
+            data={analyticsRevenue.data as TopProductByRevenueItem[]}
+          />
+        </Suspense>
+
+        <Suspense fallback={<ChartSkeleton />}>
+          <TopBuyers data={analyticsBuyers.data as TopBuyerItem[]} />
+        </Suspense>
+      </div>
+    </section>
   );
 }

@@ -1,10 +1,11 @@
 import { type CSSProperties } from 'react';
+import { auth } from '@clerk/nextjs/server';
 
+import { Text } from '@/components/ui/text';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { BatchStatus, getBatch } from '@/lib/api/batches';
 import { DownloadReportButton } from '@/components/pages/batch-detail/download-report-button';
-import { auth } from '@clerk/nextjs/server';
 
 function getStatusStyle(status: BatchStatus): CSSProperties {
   return {
@@ -39,12 +40,9 @@ export async function BatchHeader({ paramsPromise }: BatchHeaderProps) {
   return (
     <section aria-labelledby="batch-heading">
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <h1
-          id="batch-heading"
-          className="text-xl font-semibold text-foreground"
-        >
+        <Text size="h1" id="batch-heading">
           {batch.file_name}
-        </h1>
+        </Text>
         <Badge variant="outline" style={getStatusStyle(batch.status)}>
           {batch.status.charAt(0).toUpperCase() + batch.status.slice(1)}
         </Badge>

@@ -23,21 +23,7 @@ export default async function BatchDetailRoute({
 
         <Separator />
 
-        <section aria-labelledby="analytics-heading">
-          <div className="mb-6">
-            <h2
-              id="analytics-heading"
-              className="text-xl font-semibold text-foreground"
-            >
-              Analytics
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Top products and buyers for this batch.
-            </p>
-          </div>
-
-          <BatchAnalytics paramsPromise={params} />
-        </section>
+        <BatchAnalytics paramsPromise={params} />
       </main>
     </div>
   );
