@@ -41,7 +41,7 @@ export async function BatchHeader({ paramsPromise }: BatchHeaderProps) {
     <section aria-labelledby="batch-heading">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Text size="h1" id="batch-heading">
-          {batch.file_name}
+          {batch.source ?? batch.file_name}
         </Text>
         <Badge variant="outline" style={getStatusStyle(batch.status)}>
           {batch.status.charAt(0).toUpperCase() + batch.status.slice(1)}

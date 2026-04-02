@@ -33,6 +33,7 @@ export function UploadZone() {
   const [dragging, setDragging] = React.useState(false)
   const [files, setFiles] = React.useState<UploadedFile[]>([])
   const [error, setError] = React.useState<string | null>(null)
+  const [source, setSource] = React.useState('')
   const inputRef = React.useRef<HTMLInputElement>(null)
 
   const router = useRouter()
@@ -92,7 +93,7 @@ export function UploadZone() {
     const [first, ...rest] = files
     if (!first) return
     // For now we upload one at a time; the hook tracks one batch at a time
-    upload(first.file)
+    upload(first.file, source.trim() || undefined)
     // Remaining files are noted but only the first is submitted per call
     if (rest.length > 0) {
       setFiles(rest.map((f) => f))
@@ -105,6 +106,7 @@ export function UploadZone() {
     reset()
     setFiles([])
     setError(null)
+    setSource('')
   }
 
   // ------------------------------------------------------------------
@@ -204,6 +206,27 @@ export function UploadZone() {
 
   return (
     <div className="space-y-3">
+      {/* Source label */}
+      <div className="space-y-1.5">
+        <label
+          htmlFor="batch-source"
+          className="flex items-baseline gap-2 text-sm font-medium text-foreground"
+        >
+          Fuente
+          <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
+        </label>
+        <input
+          id="batch-source"
+          type="text"
+          value={source}
+          onChange={(e) => setSource(e.target.value)}
+          placeholder="ej. equipo-finanzas"
+          disabled={isBusy}
+          maxLength={100}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
+
       {/* Drop zone */}
       <div
         role="button"

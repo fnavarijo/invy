@@ -215,8 +215,8 @@ export function useBatchUpload(options?: { onComplete?: () => void }): {
       const apiBase =
         process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
       const form = new FormData();
-      form.append('file', file);
       if (source) form.append('source', source);
+      form.append('file', file);
 
       const xhr = new XMLHttpRequest();
 

@@ -140,7 +140,7 @@ export async function BatchHistory() {
               >
                 <FileIcon fileType={batch.file_type} />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                  {batch.file_name}
+                  {batch.source ?? batch.file_name}
                 </span>
                 <Badge variant="outline" style={getStatusStyle(batch.status)} className="shrink-0 text-xs">
                   {STATUS_LABELS[batch.status]}
