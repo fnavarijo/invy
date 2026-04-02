@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -41,14 +41,14 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   /* Batch status badge tokens — exposed as Tailwind utility classes */
-  --color-status-queued-bg:       var(--status-queued-bg);
-  --color-status-queued-text:     var(--status-queued-text);
-  --color-status-processing-bg:   var(--status-processing-bg);
+  --color-status-queued-bg: var(--status-queued-bg);
+  --color-status-queued-text: var(--status-queued-text);
+  --color-status-processing-bg: var(--status-processing-bg);
   --color-status-processing-text: var(--status-processing-text);
-  --color-status-done-bg:         var(--status-done-bg);
-  --color-status-done-text:       var(--status-done-text);
-  --color-status-failed-bg:       var(--status-failed-bg);
-  --color-status-failed-text:     var(--status-failed-text);
+  --color-status-done-bg: var(--status-done-bg);
+  --color-status-done-text: var(--status-done-text);
+  --color-status-failed-bg: var(--status-failed-bg);
+  --color-status-failed-text: var(--status-failed-text);
 }
 
 /* =============================================================================
@@ -64,36 +64,36 @@
 
   /* --- Surfaces --- */
   /* Pure white canvas. Clean, uncluttered reading environment for dense tables. */
-  --background:         oklch(1 0 0);
+  --background: oklch(1 0 0);
   /* Near-black with a faint cool tint — prevents pure-black harshness on white. */
-  --foreground:         oklch(0.13 0.012 264);
+  --foreground: oklch(0.13 0.012 264);
 
   /* Cards sit on the background. A barely-there warm-cool offset lifts them. */
-  --card:               oklch(0.99 0.003 264);
-  --card-foreground:    oklch(0.13 0.012 264);
+  --card: oklch(0.99 0.003 264);
+  --card-foreground: oklch(0.13 0.012 264);
 
   /* Popovers use the same surface as cards. */
-  --popover:            oklch(0.99 0.003 264);
+  --popover: oklch(0.99 0.003 264);
   --popover-foreground: oklch(0.13 0.012 264);
 
   /* --- Brand Primary: Slate-Indigo --- */
   /* Mid-range indigo — authoritative without being aggressive.
      Passes 4.5:1 against white primary-foreground. */
-  --primary:            oklch(0.46 0.175 264);
+  --primary: oklch(0.46 0.175 264);
   --primary-foreground: oklch(0.985 0.005 264);
 
   /* --- Secondary: cool-tinted light gray --- */
   /* Used for secondary buttons, tags, and low-priority UI. */
-  --secondary:            oklch(0.95 0.008 264);
+  --secondary: oklch(0.95 0.008 264);
   --secondary-foreground: oklch(0.25 0.025 264);
 
   /* --- Muted: subtle fill for disabled states, zebra rows, empty states --- */
-  --muted:            oklch(0.96 0.005 264);
-  --muted-foreground: oklch(0.50 0.018 264);
+  --muted: oklch(0.96 0.005 264);
+  --muted-foreground: oklch(0.42 0.018 264); /* darkened from 0.5 — 0.5 only yields ~3.6:1 on muted bg */
 
   /* --- Accent: used for hover highlights and selected rows --- */
   /* Slightly deeper than muted to register without competing with primary. */
-  --accent:            oklch(0.93 0.015 264);
+  --accent: oklch(0.93 0.015 264);
   --accent-foreground: oklch(0.25 0.025 264);
 
   /* --- Semantic: destructive --- */
@@ -104,9 +104,9 @@
   /* Borders are cool-gray — consistent with the indigo family at low chroma. */
   --border: oklch(0.88 0.008 264);
   /* Input borders match general borders for visual unity. */
-  --input:  oklch(0.88 0.008 264);
+  --input: oklch(0.88 0.008 264);
   /* Focus ring is a lighter version of primary for keyboard accessibility. */
-  --ring:   oklch(0.60 0.14 264);
+  --ring: oklch(0.6 0.14 264);
 
   /* --- Chart series — light mode ---
      Hue spread: 255 (blue) | 198 (teal) | 50 (orange) | 295 (violet) | 17 (rose)
@@ -116,74 +116,92 @@
      equal visual weight (OKLCH perceptual uniformity).
      Lightness 0.58–0.62 gives ~4.5:1 contrast on white/near-white card
      backgrounds (oklch(1 0 0) and oklch(0.97 0 0)). */
-  --chart-1: oklch(0.58 0.16 255);   /* blue   — primary series    */
-  --chart-2: oklch(0.60 0.16 198);   /* teal   — secondary series  */
-  --chart-3: oklch(0.62 0.16 50);    /* orange — tertiary series   */
-  --chart-4: oklch(0.58 0.16 295);   /* violet — quaternary series */
-  --chart-5: oklch(0.60 0.16 17);    /* rose   — quinary series    */
+  --chart-1: oklch(0.58 0.16 255); /* blue   — primary series    */
+  --chart-2: oklch(0.6 0.16 198); /* teal   — secondary series  */
+  --chart-3: oklch(0.62 0.16 50); /* orange — tertiary series   */
+  --chart-4: oklch(0.58 0.16 295); /* violet — quaternary series */
+  --chart-5: oklch(0.6 0.16 17); /* rose   — quinary series    */
 
   /* --- Batch status badge colors — light mode ---
      Backgrounds: low-chroma tints at high lightness (L ~0.92–0.94) for
      use inside table cells and badge chips on white/off-white cards.
      Text: darkened same-hue values meeting 4.5:1 contrast on the tint bg.
-     queued    = neutral blue-grey (no action required, just waiting)
-     processing= vivid blue (active system work in progress)
+     queued    = cool blue (hue 235) — waiting, neutral, no urgency
+     processing= indigo-purple (hue 265) — visually distinct from queued, signals active work
      done      = teal-green (positive completion; teal avoids pure green
                  which collides with red under deuteranopia when used alone)
      failed    = red-orange hue 27 (matches existing --destructive hue) */
-  --status-queued-bg:       oklch(0.93 0.018 255);
-  --status-queued-text:     oklch(0.36 0.10  255);
-  --status-processing-bg:   oklch(0.92 0.030 255);
-  --status-processing-text: oklch(0.40 0.16  255);
-  --status-done-bg:         oklch(0.93 0.028 168);
-  --status-done-text:       oklch(0.36 0.13  168);
-  --status-failed-bg:       oklch(0.93 0.030 27);
-  --status-failed-text:     oklch(0.38 0.17  27);
+  --status-queued-bg: oklch(0.93 0.018 235);
+  --status-queued-text: oklch(0.36 0.1 235);
+  --status-processing-bg: oklch(0.92 0.03 265);
+  --status-processing-text: oklch(0.4 0.16 265);
+  --status-done-bg: oklch(0.93 0.028 168);
+  --status-done-text: oklch(0.36 0.13 168);
+  --status-failed-bg: oklch(0.93 0.03 27);
+  --status-failed-text: oklch(0.38 0.17 27);
 
   /* --- Sidebar --- */
   /* Sidebar uses a slightly deeper surface than the main background to create
      a natural left-rail separation without a heavy border. */
-  --sidebar:                    oklch(0.97 0.006 264);
-  --sidebar-foreground:         oklch(0.18 0.015 264);
-  --sidebar-primary:            oklch(0.46 0.175 264);
+  --sidebar: oklch(0.97 0.006 264);
+  --sidebar-foreground: oklch(0.18 0.015 264);
+  --sidebar-primary: oklch(0.46 0.175 264);
   --sidebar-primary-foreground: oklch(0.985 0.005 264);
   /* Hover / active state inside sidebar */
-  --sidebar-accent:             oklch(0.91 0.018 264);
-  --sidebar-accent-foreground:  oklch(0.18 0.015 264);
-  --sidebar-border:             oklch(0.88 0.008 264);
-  --sidebar-ring:               oklch(0.60 0.14 264);
+  --sidebar-accent: oklch(0.91 0.018 264);
+  --sidebar-accent-foreground: oklch(0.18 0.015 264);
+  --sidebar-border: oklch(0.88 0.008 264);
+  --sidebar-ring: oklch(0.6 0.14 264);
+
+  --clerk-color-primary: var(--color-primary);
+  --clerk-color-primary-foreground: var(--color-primary-foreground);
+  --clerk-color-danger: var(--color-destructive);
+  --clerk-color-success: #22c543;
+  --clerk-color-warning: #f36b16;
+  --clerk-color-neutral: var(--color-muted-foreground); /* was foreground — too high contrast for dividers/labels */
+  --clerk-color-foreground: var(--color-foreground);
+  --clerk-color-muted-foreground: var(--color-muted-foreground);
+  --clerk-color-background: var(--color-card); /* card surface token — white in light, elevated in dark */
+  --clerk-color-input: var(--color-muted); /* was --color-input (border token) — Clerk uses this as field bg */
+  --clerk-color-input-foreground: var(--color-foreground);
+  --clerk-color-ring: var(--color-ring);
+  --clerk-color-shimmer: var(--color-background); /* pure white (1.0) vs near-white card (0.99) — subtle visible sweep */
+  --clerk-color-modal-backdrop: #000000;
+  --clerk-border-radius: var(--radius-md);
+  --clerk-spacing: 1rem;
+  --clerk-color-muted: var(--color-muted);
 }
 
 .dark {
   /* --- Surfaces --- */
   /* Deep navy-charcoal — not pure black, which creates halation on OLED. */
-  --background:         oklch(0.14 0.018 264);
-  --foreground:         oklch(0.94 0.008 264);
+  --background: oklch(0.14 0.018 264);
+  --foreground: oklch(0.94 0.008 264);
 
   /* Cards float 2 lightness steps above background. */
-  --card:               oklch(0.19 0.020 264);
-  --card-foreground:    oklch(0.94 0.008 264);
+  --card: oklch(0.19 0.02 264);
+  --card-foreground: oklch(0.94 0.008 264);
 
-  --popover:            oklch(0.19 0.020 264);
+  --popover: oklch(0.19 0.02 264);
   --popover-foreground: oklch(0.94 0.008 264);
 
   /* --- Brand Primary (dark) --- */
   /* Lighter than the light-mode primary so it remains vivid against dark surfaces.
      Still passes 4.5:1 against the dark primary-foreground. */
-  --primary:            oklch(0.62 0.175 264);
-  --primary-foreground: oklch(0.10 0.020 264);
+  --primary: oklch(0.62 0.175 264);
+  --primary-foreground: oklch(0.1 0.02 264);
 
   /* --- Secondary --- */
-  --secondary:            oklch(0.24 0.022 264);
-  --secondary-foreground: oklch(0.88 0.010 264);
+  --secondary: oklch(0.24 0.022 264);
+  --secondary-foreground: oklch(0.88 0.01 264);
 
   /* --- Muted --- */
-  --muted:            oklch(0.23 0.018 264);
-  --muted-foreground: oklch(0.60 0.020 264);
+  --muted: oklch(0.23 0.018 264);
+  --muted-foreground: oklch(0.65 0.03 264); /* raised from 0.6 — fixes 4.42:1 WCAG fail on muted bg */
 
   /* --- Accent --- */
-  --accent:            oklch(0.27 0.026 264);
-  --accent-foreground: oklch(0.90 0.010 264);
+  --accent: oklch(0.27 0.026 264);
+  --accent-foreground: oklch(0.9 0.01 264);
 
   /* --- Semantic: destructive --- */
   /* Brightened for dark-mode legibility — softer red keeps the UI from feeling alarming. */
@@ -191,43 +209,62 @@
 
   /* --- Chrome --- */
   /* Borders use alpha so they adapt gracefully to any underlying surface. */
-  --border: oklch(1 0 0 / 12%);
-  --input:  oklch(1 0 0 / 16%);
-  --ring:   oklch(0.62 0.175 264);
+  --border: oklch(1 0 0 / 18%); /* raised from 12% — 12% was too faint to delineate table rows */
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.62 0.175 264);
 
   /* --- Chart series — dark mode ---
      Same hues as light mode; lightness raised to 0.70–0.74 so the colors
      achieve ~4.5:1 contrast against the dark card background oklch(0.19 0.02 264).
      Chroma held at 0.16 — identical to light mode — so charts look the same
      colour in both modes (just brighter on dark). No hue shifts. */
-  --chart-1: oklch(0.72 0.16 255);   /* blue   */
-  --chart-2: oklch(0.74 0.16 198);   /* teal   */
-  --chart-3: oklch(0.74 0.16 50);    /* orange */
-  --chart-4: oklch(0.72 0.16 295);   /* violet */
-  --chart-5: oklch(0.73 0.16 17);    /* rose   */
+  --chart-1: oklch(0.72 0.16 255); /* blue   */
+  --chart-2: oklch(0.74 0.16 198); /* teal   */
+  --chart-3: oklch(0.74 0.16 50); /* orange */
+  --chart-4: oklch(0.72 0.16 295); /* violet */
+  --chart-5: oklch(0.73 0.16 17); /* rose   */
 
   /* --- Batch status badge colors — dark mode ---
      Backgrounds: darker, more saturated tints (L ~0.24–0.26) that float on
-     the dark card surface. Text: high-lightness version of the same hue. */
-  --status-queued-bg:       oklch(0.26 0.040 255);
-  --status-queued-text:     oklch(0.82 0.10  255);
-  --status-processing-bg:   oklch(0.25 0.055 255);
-  --status-processing-text: oklch(0.84 0.16  255);
-  --status-done-bg:         oklch(0.25 0.050 168);
-  --status-done-text:       oklch(0.82 0.13  168);
-  --status-failed-bg:       oklch(0.25 0.050 27);
-  --status-failed-text:     oklch(0.82 0.16  27);
+     the dark card surface. Text: high-lightness version of the same hue.
+     queued/processing use distinct hues (235 vs 265) so they are never confused. */
+  --status-queued-bg: oklch(0.26 0.04 235);
+  --status-queued-text: oklch(0.82 0.1 235);
+  --status-processing-bg: oklch(0.25 0.055 265);
+  --status-processing-text: oklch(0.84 0.16 265);
+  --status-done-bg: oklch(0.25 0.05 168);
+  --status-done-text: oklch(0.82 0.13 168);
+  --status-failed-bg: oklch(0.25 0.05 27);
+  --status-failed-text: oklch(0.82 0.16 27);
 
   /* --- Sidebar (dark) --- */
   /* One step deeper than dark background — creates hierarchy without a hard border. */
-  --sidebar:                    oklch(0.11 0.016 264);
-  --sidebar-foreground:         oklch(0.88 0.010 264);
-  --sidebar-primary:            oklch(0.62 0.175 264);
-  --sidebar-primary-foreground: oklch(0.10 0.020 264);
-  --sidebar-accent:             oklch(0.22 0.025 264);
-  --sidebar-accent-foreground:  oklch(0.88 0.010 264);
-  --sidebar-border:             oklch(1 0 0 / 10%);
-  --sidebar-ring:               oklch(0.62 0.175 264);
+  --sidebar: oklch(0.11 0.016 264);
+  --sidebar-foreground: oklch(0.88 0.01 264);
+  --sidebar-primary: oklch(0.62 0.175 264);
+  --sidebar-primary-foreground: oklch(0.1 0.02 264);
+  --sidebar-accent: oklch(0.22 0.025 264);
+  --sidebar-accent-foreground: oklch(0.88 0.01 264);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.62 0.175 264);
+
+  --clerk-color-primary: var(--color-primary);
+  --clerk-color-primary-foreground: var(--color-primary-foreground);
+  --clerk-color-danger: var(--color-destructive);
+  --clerk-color-success: #22c543;
+  --clerk-color-warning: #f36b16;
+  --clerk-color-neutral: var(--color-muted-foreground); /* was foreground — too high contrast for dividers/labels */
+  --clerk-color-foreground: var(--color-foreground);
+  --clerk-color-muted-foreground: var(--color-muted-foreground);
+  --clerk-color-background: var(--color-card); /* card surface, not page bg — dark bg made card invisible */
+  --clerk-color-input: var(--color-secondary); /* was --color-input (border token) — Clerk uses this as field bg */
+  --clerk-color-input-foreground: var(--color-foreground);
+  --clerk-color-ring: var(--color-ring);
+  --clerk-color-shimmer: var(--color-accent); /* shimmer sweeps over card, needs to contrast against it */
+  --clerk-color-modal-backdrop: #000000;
+  --clerk-border-radius: var(--radius-md);
+  --clerk-spacing: 1rem;
+  --clerk-color-muted: var(--color-muted);
 }
 
 @layer base {
