@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { BatchStatus, getBatch } from '@/lib/api/batches';
 import { DownloadReportButton } from '@/components/pages/batch-detail/download-report-button';
+import { DownloadProductsButton } from '@/components/pages/batch-detail/download-products-button';
 
 function getStatusStyle(status: BatchStatus): CSSProperties {
   return {
@@ -47,7 +48,10 @@ export async function BatchHeader({ paramsPromise }: BatchHeaderProps) {
           {batch.status.charAt(0).toUpperCase() + batch.status.slice(1)}
         </Badge>
         {batch.status === 'done' && (
-          <DownloadReportButton batchId={batch.batch_id} />
+          <>
+            <DownloadReportButton batchId={batch.batch_id} />
+            <DownloadProductsButton batchId={batch.batch_id} />
+          </>
         )}
       </div>
 

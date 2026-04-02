@@ -613,6 +613,60 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
     },
   );
 
+  // ── GET /v1/batches/:batch_id/export/products/xlsx ───────────────────────────
+  fastify.get<{ Params: { batch_id: string } }>(
+    '/:batch_id/export/products/xlsx',
+    async (
+      request: FastifyRequest<{ Params: { batch_id: string } }>,
+      reply: FastifyReply,
+    ) => {
+      const { batch_id } = request.params;
+      const { userId } = getAuth(request);
+
+      if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
+        return reply
+          .status(404)
+          .send(buildError('NOT_FOUND', 'Batch not found.'));
+      }
+
+      const rows = await fastify.db.execute<{
+        product_name: string;
+        total_amount: string;
+      }>(sql`
+        SELECT
+          elem->>'name'                  AS product_name,
+          SUM((elem->>'total')::numeric) AS total_amount
+        FROM invoices,
+          jsonb_array_elements(line_items) AS elem
+        WHERE batch_id = ${batch_id}
+        GROUP BY product_name
+        ORDER BY total_amount DESC
+      `);
+
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Productos');
+      sheet.columns = [
+        { header: 'Producto', key: 'product_name', width: 48 },
+        { header: 'Total',    key: 'total_amount', width: 18 },
+      ];
+
+      for (const row of rows) {
+        sheet.addRow({
+          product_name: row.product_name,
+          total_amount: Number(row.total_amount),
+        });
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const fileName = `batch_${batch_id}_products.xlsx`;
+
+      return reply
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .send(Buffer.from(buffer));
+    },
+  );
+
   // ── GET /v1/batches/:batch_id/analytics/top-products-by-quantity ──────────────
   fastify.get<{ Params: { batch_id: string }; Querystring: AnalyticsQuery }>(
     '/:batch_id/analytics/top-products-by-quantity',
