@@ -15,7 +15,7 @@ import { invoiceVolumeData } from "@/lib/mock-data"
 export function InvoiceVolume() {
   const total = invoiceVolumeData.reduce((s, d) => s + d.invoices, 0)
   if (invoiceVolumeData.length === 0 || total === 0) {
-    return <ChartEmpty message="No invoice data yet." />
+    return <ChartEmpty message="Aún no hay datos de facturas." />
   }
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -42,7 +42,7 @@ export function InvoiceVolume() {
             fontSize: "0.75rem",
           }}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          formatter={(value: any) => [Number(value).toLocaleString(), "Invoices"]}
+          formatter={(value: any) => [Number(value).toLocaleString(), "Facturas"]}
         />
         <Line
           type="monotone"

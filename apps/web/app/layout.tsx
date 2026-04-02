@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Invy — Invoice Processing',
-  description: 'SAT XML invoice processing and analytics',
+  title: 'Invy — Procesamiento de Facturas',
+  description: 'Procesamiento y análisis de facturas XML del SAT',
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >

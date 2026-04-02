@@ -22,7 +22,7 @@ const STATUS_COLORS: Record<string, string> = {
 export function BatchesByStatus() {
   const total = batchStatusData.reduce((s, d) => s + d.count, 0)
   if (batchStatusData.length === 0 || total === 0) {
-    return <ChartEmpty message="No batches yet. Upload a file to see data here." />
+    return <ChartEmpty message="Aún no hay lotes. Sube un archivo para ver datos aquí." />
   }
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -49,7 +49,7 @@ export function BatchesByStatus() {
             fontSize: "0.75rem",
           }}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          formatter={(value: any) => [value, "Batches"]}
+          formatter={(value: any) => [value, "Lotes"]}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           labelFormatter={(label: any) => String(label).charAt(0).toUpperCase() + String(label).slice(1)}
         />

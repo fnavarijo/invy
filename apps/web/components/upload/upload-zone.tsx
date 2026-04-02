@@ -48,11 +48,11 @@ export function UploadZone() {
     const accepted: UploadedFile[] = []
     for (const file of Array.from(incoming)) {
       if (!isAccepted(file)) {
-        setError(`"${file.name}" is not a supported file type. Please upload .xml or .zip files.`)
+        setError(`"${file.name}" no es un tipo de archivo compatible. Por favor sube archivos .xml o .zip.`)
         continue
       }
       if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        setError(`"${file.name}" exceeds the ${MAX_SIZE_MB} MB limit.`)
+        setError(`"${file.name}" supera el límite de ${MAX_SIZE_MB} MB.`)
         continue
       }
       accepted.push({ file, id: crypto.randomUUID() })
@@ -115,7 +115,7 @@ export function UploadZone() {
     return (
       <div className="space-y-3">
         <div className="rounded-xl border bg-card px-6 py-8 text-center space-y-4">
-          <p className="text-sm font-medium text-foreground">Uploading…</p>
+          <p className="text-sm font-medium text-foreground">Subiendo…</p>
           <Progress value={state.progress} className="w-full" />
           <p className="text-xs text-muted-foreground">{state.progress}%</p>
         </div>
@@ -128,12 +128,12 @@ export function UploadZone() {
       <div className="space-y-3">
         <div className="rounded-xl border bg-card px-6 py-8 text-center space-y-4">
           <Loader2 className="mx-auto size-8 animate-spin text-primary" aria-hidden />
-          <p className="text-sm font-medium text-foreground">Processing…</p>
+          <p className="text-sm font-medium text-foreground">Procesando…</p>
           <p className="text-xs text-muted-foreground">
-            Batch ID: <span className="font-mono">{state.batch.batch_id}</span>
+            ID de lote: <span className="font-mono">{state.batch.batch_id}</span>
           </p>
           <p className="text-xs text-muted-foreground">
-            Attempt {state.attempt + 1}
+            Intento {state.attempt + 1}
           </p>
         </div>
       </div>
@@ -146,21 +146,21 @@ export function UploadZone() {
       <div className="space-y-3">
         <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30 px-6 py-8 text-center space-y-3">
           <CheckCircle2 className="mx-auto size-8 text-green-600 dark:text-green-400" aria-hidden />
-          <p className="text-sm font-semibold text-foreground">Batch complete</p>
+          <p className="text-sm font-semibold text-foreground">Lote completado</p>
           <dl className="text-xs text-muted-foreground space-y-1">
             <div>
-              <dt className="inline">Batch ID: </dt>
+              <dt className="inline">ID de lote: </dt>
               <dd className="inline font-mono">{batch.batch_id}</dd>
             </div>
             {batch.invoice_count != null && (
               <div>
-                <dt className="inline">Invoices processed: </dt>
+                <dt className="inline">Facturas procesadas: </dt>
                 <dd className="inline">{batch.invoice_count}</dd>
               </div>
             )}
             {batch.failed_count != null && batch.failed_count > 0 && (
               <div>
-                <dt className="inline">Failed: </dt>
+                <dt className="inline">Fallidas: </dt>
                 <dd className="inline text-destructive">{batch.failed_count}</dd>
               </div>
             )}
@@ -169,11 +169,11 @@ export function UploadZone() {
             href={`/batches/${batch.batch_id}`}
             className="inline-block text-xs text-primary underline underline-offset-2 hover:no-underline"
           >
-            View batch details
+            Ver detalles del lote
           </a>
         </div>
         <Button variant="outline" onClick={handleReset} className="w-full sm:w-auto">
-          Upload another
+          Subir otro
         </Button>
       </div>
     )
@@ -185,14 +185,14 @@ export function UploadZone() {
       <div className="space-y-3">
         <div className="rounded-xl border border-destructive/40 bg-destructive/5 px-6 py-8 text-center space-y-3">
           <AlertCircle className="mx-auto size-8 text-destructive" aria-hidden />
-          <p className="text-sm font-semibold text-foreground">Upload failed</p>
+          <p className="text-sm font-semibold text-foreground">Error al subir</p>
           <p className="text-sm text-destructive">{state.error}</p>
           {batch && (
             <p className="text-xs text-muted-foreground font-mono">{batch.batch_id}</p>
           )}
         </div>
         <Button variant="outline" onClick={handleReset} className="w-full sm:w-auto">
-          Upload another
+          Subir otro
         </Button>
       </div>
     )
@@ -208,7 +208,7 @@ export function UploadZone() {
       <div
         role="button"
         tabIndex={isBusy ? -1 : 0}
-        aria-label="Upload XML or ZIP invoice file. Press Enter or Space to browse, or drag and drop a file here."
+        aria-label="Sube un archivo XML o ZIP de factura. Presiona Enter o Espacio para explorar, o arrastra y suelta un archivo aquí."
         aria-disabled={isBusy}
         className={cn(
           "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-12 text-center transition-colors",
@@ -230,11 +230,11 @@ export function UploadZone() {
         />
         <div>
           <p className="text-sm font-medium text-foreground">
-            Drop your file here, or{" "}
-            <span className="text-primary underline underline-offset-2">browse</span>
+            Arrastra tu archivo aquí, o{" "}
+            <span className="text-primary underline underline-offset-2">explora</span>
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Supports .xml and .zip — up to {MAX_SIZE_MB} MB
+            Compatible con .xml y .zip — hasta {MAX_SIZE_MB} MB
           </p>
         </div>
         <input
@@ -260,7 +260,7 @@ export function UploadZone() {
 
       {/* File list */}
       {files.length > 0 && (
-        <ul className="space-y-2" aria-label="Files to upload">
+        <ul className="space-y-2" aria-label="Archivos a subir">
           {files.map(({ file, id }) => (
             <li
               key={id}
@@ -275,7 +275,7 @@ export function UploadZone() {
               <span className="shrink-0 text-xs text-muted-foreground">{humanSize(file.size)}</span>
               <button
                 type="button"
-                aria-label={`Remove ${file.name}`}
+                aria-label={`Eliminar ${file.name}`}
                 disabled={isBusy}
                 className="shrink-0 rounded text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                 onClick={() => removeFile(id)}
@@ -294,7 +294,7 @@ export function UploadZone() {
           disabled={isBusy}
           onClick={handleProcess}
         >
-          Process {files.length === 1 ? "file" : `${files.length} files`}
+          Procesar {files.length === 1 ? "archivo" : `${files.length} archivos`}
         </Button>
       )}
     </div>

@@ -31,12 +31,12 @@ export function TopProductsRevenue({ data }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Products by Revenue</CardTitle>
-        <CardDescription>Total revenue per product in this batch</CardDescription>
+        <CardTitle>Productos con mayor ingreso</CardTitle>
+        <CardDescription>Ingreso total por producto en este lote</CardDescription>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (
-          <ChartEmpty message="No product revenue data available for this batch." />
+          <ChartEmpty message="No hay datos de ingresos por producto para este lote." />
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <BarChart
@@ -71,7 +71,7 @@ export function TopProductsRevenue({ data }: Props) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(value: any) => [
                   `Q${typeof value === "number" ? value.toLocaleString() : String(value)}`,
-                  "Revenue",
+                  "Ingreso",
                 ]}
               />
               <Bar

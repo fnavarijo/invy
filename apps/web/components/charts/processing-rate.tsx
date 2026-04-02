@@ -15,7 +15,7 @@ import { processingRateData } from "@/lib/mock-data"
 export function ProcessingRate() {
   const total = processingRateData.reduce((s, d) => s + d.succeeded + d.failed, 0)
   if (processingRateData.length === 0 || total === 0) {
-    return <ChartEmpty message="No processing data yet." />
+    return <ChartEmpty message="Aún no hay datos de procesamiento." />
   }
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -46,8 +46,8 @@ export function ProcessingRate() {
           iconSize={8}
           wrapperStyle={{ fontSize: "0.75rem", color: "var(--color-muted-foreground)" }}
         />
-        <Bar dataKey="succeeded" name="Succeeded" stackId="a" fill="var(--color-chart-2)" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="failed" name="Failed" stackId="a" fill="var(--color-status-failed-text)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="succeeded" name="Exitosos" stackId="a" fill="var(--color-chart-2)" radius={[0, 0, 0, 0]} />
+        <Bar dataKey="failed" name="Fallidos" stackId="a" fill="var(--color-status-failed-text)" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   )

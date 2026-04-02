@@ -12,7 +12,7 @@ const COLORS = [
 
 export function InvoiceTypes() {
   if (invoiceTypeData.length === 0) {
-    return <ChartEmpty message="No invoice type data yet." />
+    return <ChartEmpty message="Aún no hay datos de tipos de factura." />
   }
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -38,7 +38,7 @@ export function InvoiceTypes() {
             fontSize: "0.75rem",
           }}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          formatter={(value: any) => [`${value}%`, "Share"]}
+          formatter={(value: any) => [`${value}%`, "Participación"]}
         />
         <Legend
           iconType="circle"

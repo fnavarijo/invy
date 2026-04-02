@@ -33,12 +33,12 @@ export function TopProductsQuantity({ data }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Products by Quantity</CardTitle>
-        <CardDescription>Units sold per product in this batch</CardDescription>
+        <CardTitle>Productos con mayor cantidad</CardTitle>
+        <CardDescription>Unidades vendidas por producto en este lote</CardDescription>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (
-          <ChartEmpty message="No product quantity data available for this batch." />
+          <ChartEmpty message="No hay datos de cantidad por producto para este lote." />
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <BarChart
@@ -74,7 +74,7 @@ export function TopProductsQuantity({ data }: Props) {
                   typeof value === 'number'
                     ? value.toLocaleString()
                     : String(value),
-                  'Units',
+                  'Unidades',
                 ]}
               />
               <Bar

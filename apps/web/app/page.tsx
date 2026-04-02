@@ -22,9 +22,9 @@ export default function DashboardPage() {
 
         <section aria-labelledby="batches-heading">
           <div className="mb-4">
-            <Text size="h2" id="batches-heading">Recent batches</Text>
+            <Text size="h2" id="batches-heading">Lotes recientes</Text>
             <Text size="body" className="mt-1 text-muted-foreground">
-              Your most recent uploads and their processing status.
+              Tus cargas más recientes y su estado de procesamiento.
             </Text>
           </div>
           <Suspense fallback={<BatchHistorySkeleton />}>

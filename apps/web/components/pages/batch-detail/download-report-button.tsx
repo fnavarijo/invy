@@ -37,7 +37,7 @@ export function DownloadReportButton({ batchId }: { batchId: string }) {
       disabled={downloading}
     >
       <Download className="h-4 w-4 mr-2" />
-      {downloading ? 'Downloading…' : 'Export XLSX'}
+      {downloading ? 'Descargando…' : 'Exportar XLSX'}
     </Button>
   );
 }

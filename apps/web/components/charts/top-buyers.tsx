@@ -31,12 +31,12 @@ export function TopBuyers({ data }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Buyers</CardTitle>
-        <CardDescription>Clients with highest spend in this batch</CardDescription>
+        <CardTitle>Principales compradores</CardTitle>
+        <CardDescription>Clientes con mayor gasto en este lote</CardDescription>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (
-          <ChartEmpty message="No buyer data available for this batch." />
+          <ChartEmpty message="No hay datos de compradores para este lote." />
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <BarChart
@@ -71,7 +71,7 @@ export function TopBuyers({ data }: Props) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(value: any) => [
                   `Q${typeof value === "number" ? value.toLocaleString() : String(value)}`,
-                  "Total Spent",
+                  "Total gastado",
                 ]}
               />
               <Bar

@@ -15,7 +15,7 @@ export function NavbarActions() {
       className="ml-auto inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
       <LogOut className="h-4 w-4" />
-      Sign out
+      Cerrar sesión
     </button>
   );
 }
