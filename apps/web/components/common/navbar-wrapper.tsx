@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/common/navbar';
 
-const ROUTES_WITHOUT_NAVBAR = ['/auth/login'];
+const ROUTES_WITHOUT_NAVBAR = ['/auth/login', '/auth/signup'];
 
 export function NavbarWrapper() {
   const pathname = usePathname();
