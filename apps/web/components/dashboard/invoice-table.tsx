@@ -132,10 +132,10 @@ export async function InvoiceTable({
                     Tipo
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Emisor
+                    Cliente
                   </th>
                   <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground md:table-cell">
-                    NIT Emisor
+                    NIT Cliente
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     Total
@@ -153,7 +153,7 @@ export async function InvoiceTable({
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className="block max-w-[140px] truncate font-mono text-xs"
+                        className="block max-w-35 truncate font-mono text-xs"
                         title={inv.invoice_number}
                       >
                         {inv.invoice_number}
@@ -166,14 +166,14 @@ export async function InvoiceTable({
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className="block max-w-[200px] truncate"
-                        title={inv.issuer_name}
+                        className="block max-w-50 truncate"
+                        title={inv.client_name}
                       >
-                        {inv.issuer_name}
+                        {inv.client_name}
                       </span>
                     </td>
                     <td className="hidden px-4 py-3 font-mono text-xs text-muted-foreground md:table-cell">
-                      {inv.issuer_nit}
+                      {inv.client_nit}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums">
                       {inv.currency === 'GTQ' ? 'Q' : inv.currency}{' '}
