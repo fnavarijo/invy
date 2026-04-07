@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify'
 import { eq, and, desc, gte, lte, sql } from 'drizzle-orm'
 import { invoices } from '@invy/db'
+import { getAuth } from '@clerk/fastify'
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts'
 
 interface InvoiceListQuery {
@@ -17,7 +18,6 @@ interface InvoiceListQuery {
 // Columns returned in invoice list responses (no line_items, no raw_payload)
 const invoiceListColumns = {
   invoice_id: invoices.invoice_id,
-  batch_id: invoices.batch_id,
   invoice_number: invoices.invoice_number,
   type: invoices.type,
   currency: invoices.currency,
@@ -27,7 +27,6 @@ const invoiceListColumns = {
   issuer_nit: invoices.issuer_nit,
   client_name: invoices.client_name,
   client_nit: invoices.client_nit,
-  source_file: invoices.source_file,
   created_at: invoices.created_at,
 }
 
@@ -36,6 +35,7 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
   fastify.get<{ Querystring: InvoiceListQuery }>(
     '/',
     async (request: FastifyRequest<{ Querystring: InvoiceListQuery }>, reply: FastifyReply) => {
+      const { userId } = getAuth(request)
       const { type, currency, issuer_nit, client_nit, issued_from, issued_to, cursor } = request.query
       const limitRaw = parseInt(request.query.limit ?? '50', 10)
 
@@ -61,7 +61,7 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
         }
       }
 
-      const conditions = []
+      const conditions = [eq(invoices.user_id, userId!)]
       if (type) conditions.push(eq(invoices.type, type))
       if (currency) conditions.push(eq(invoices.currency, currency))
       if (issuer_nit) conditions.push(eq(invoices.issuer_nit, issuer_nit))
@@ -77,7 +77,7 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
       const rows = await fastify.db
         .select(invoiceListColumns)
         .from(invoices)
-        .where(conditions.length ? and(...conditions) : undefined)
+        .where(and(...conditions))
         .orderBy(desc(invoices.issued_at), desc(invoices.invoice_id))
         .limit(limit + 1)
 
@@ -99,11 +99,12 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
     '/:invoice_id',
     async (request: FastifyRequest<{ Params: { invoice_id: string } }>, reply: FastifyReply) => {
       const { invoice_id } = request.params
+      const { userId } = getAuth(request)
 
       const [invoice] = await fastify.db
         .select()
         .from(invoices)
-        .where(eq(invoices.invoice_id, invoice_id))
+        .where(and(eq(invoices.invoice_id, invoice_id), eq(invoices.user_id, userId!)))
         .limit(1)
 
       if (!invoice) {

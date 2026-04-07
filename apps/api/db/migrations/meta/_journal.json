@@ -15,6 +15,13 @@
       "when": 1774643349932,
       "tag": "0001_lively_robbie_robertson",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775590382724,
+      "tag": "0002_short_living_lightning",
+      "breakpoints": true
     }
   ]
 }

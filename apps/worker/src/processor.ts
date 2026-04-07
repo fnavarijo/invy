@@ -1,8 +1,8 @@
 import type { Job } from 'bullmq';
-import { eq } from 'drizzle-orm';
 import type { InferInsertModel } from 'drizzle-orm';
 import type { Readable } from 'node:stream';
-import { type DB, batches, invoices } from '@invy/db';
+import { eq, inArray } from 'drizzle-orm';
+import { type DB, batches, invoices, batchInvoices } from '@invy/db';
 import { type StorageClient, StorageError } from '@invy/storage';
 import { NonRetryableError } from './errors.ts';
 import { extractXmlsFromZip } from './unzip.ts';
@@ -12,6 +12,7 @@ import { ulid } from 'ulid';
 
 export type JobPayload = { batchId: string; fileKey: string };
 type NewInvoice = InferInsertModel<typeof invoices>;
+type NewBatchInvoice = InferInsertModel<typeof batchInvoices>;
 type BatchError = { file_name: string; reason: string };
 
 const CHUNK_SIZE = 100;
@@ -47,6 +48,7 @@ export async function processJob(
       batch_id: batches.batch_id,
       file_type: batches.file_type,
       file_name: batches.file_name,
+      user_id: batches.user_id,
     });
 
   if (!batch) return;
@@ -96,7 +98,8 @@ export async function processJob(
   }
 
   // Step 5 — validate, extract, and normalize each entry
-  const invoiceRows: NewInvoice[] = [];
+  type PendingInvoice = { invoiceRow: NewInvoice; sourceFile: string };
+  const pending: PendingInvoice[] = [];
   const errors: BatchError[] = [];
 
   for (const entry of entries) {
@@ -122,27 +125,54 @@ export async function processJob(
       continue;
     }
 
-    invoiceRows.push({
-      invoice_id: generateId('inv'),
-      batch_id: batchId,
-      invoice_number: normalized.invoiceNumber,
-      type: normalized.type,
-      currency: normalized.currency,
-      total_amount: normalized.totalAmount,
-      issued_at: normalized.issuedAt,
-      issuer_name: normalized.issuerName,
-      issuer_nit: normalized.issuerNit,
-      client_name: normalized.clientName,
-      client_nit: normalized.clientNit,
-      line_items: normalized.lineItems,
-      source_file: entry.fileName,
-      raw_payload: extracted.rawPayload,
+    pending.push({
+      sourceFile: entry.fileName,
+      invoiceRow: {
+        invoice_id: generateId('inv'),
+        user_id: batch.user_id,
+        invoice_number: normalized.invoiceNumber,
+        type: normalized.type,
+        currency: normalized.currency,
+        total_amount: normalized.totalAmount,
+        issued_at: normalized.issuedAt,
+        issuer_name: normalized.issuerName,
+        issuer_nit: normalized.issuerNit,
+        client_name: normalized.clientName,
+        client_nit: normalized.clientNit,
+        line_items: normalized.lineItems,
+        raw_payload: extracted.rawPayload,
+      },
     });
   }
 
-  // Step 6 — insert in chunks of 100
-  for (let i = 0; i < invoiceRows.length; i += CHUNK_SIZE) {
-    await db.insert(invoices).values(invoiceRows.slice(i, i + CHUNK_SIZE));
+  // Step 6 — upsert invoices (skip duplicates) then link to this batch
+  //
+  // For each chunk: insert invoices with ON CONFLICT DO NOTHING, then resolve
+  // the actual invoice_ids (new or pre-existing) by invoice_number, and insert
+  // into batch_invoices.
+  for (let i = 0; i < pending.length; i += CHUNK_SIZE) {
+    const chunk = pending.slice(i, i + CHUNK_SIZE);
+    const invoiceRows = chunk.map((p) => p.invoiceRow);
+
+    // Insert new invoices, skip duplicates silently
+    await db.insert(invoices).values(invoiceRows).onConflictDoNothing();
+
+    // Resolve invoice_ids for all invoice_numbers in this chunk (new + existing)
+    const invoiceNumbers = invoiceRows.map((r) => r.invoice_number);
+    const resolved = await db
+      .select({ invoice_id: invoices.invoice_id, invoice_number: invoices.invoice_number })
+      .from(invoices)
+      .where(inArray(invoices.invoice_number, invoiceNumbers));
+
+    const idByNumber = new Map(resolved.map((r) => [r.invoice_number, r.invoice_id]));
+
+    const batchInvoiceRows: NewBatchInvoice[] = chunk.map((p) => ({
+      batch_id: batchId,
+      invoice_id: idByNumber.get(p.invoiceRow.invoice_number)!,
+      source_file: p.sourceFile,
+    }));
+
+    await db.insert(batchInvoices).values(batchInvoiceRows).onConflictDoNothing();
   }
 
   // Step 7 — finalize batch
@@ -150,7 +180,7 @@ export async function processJob(
     .update(batches)
     .set({
       status: 'done',
-      invoice_count: invoiceRows.length,
+      invoice_count: pending.length,
       failed_count: errors.length,
       errors,
       completed_at: new Date(),

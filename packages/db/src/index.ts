@@ -1,5 +1,5 @@
-export { batches, invoices, batchStatusEnum } from './schema.js'
-export type { BatchSelect, InvoiceSelect } from './schema.js'
+export { batches, invoices, batchInvoices, batchStatusEnum } from './schema.js'
+export type { BatchSelect, InvoiceSelect, BatchInvoiceSelect } from './schema.js'
 export type { LineItem } from './types.js'
 export { createDb } from './client.js'
 export type { DB, DbClient, DbClientOptions } from './client.js'

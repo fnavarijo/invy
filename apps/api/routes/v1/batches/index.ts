@@ -7,7 +7,7 @@ import type {
 import multipart, { type MultipartFile } from '@fastify/multipart';
 import { ulid } from 'ulid';
 import { eq, and, ne, desc, asc, sql } from 'drizzle-orm';
-import { batches, invoices } from '@invy/db';
+import { batches, invoices, batchInvoices } from '@invy/db';
 import { getAuth } from '@clerk/fastify';
 import ExcelJS from 'exceljs';
 import type {
@@ -52,7 +52,6 @@ const batchDetailColumns = {
 // Columns returned in invoice list responses (no line_items, no raw_payload)
 const invoiceListColumns = {
   invoice_id: invoices.invoice_id,
-  batch_id: invoices.batch_id,
   invoice_number: invoices.invoice_number,
   type: invoices.type,
   currency: invoices.currency,
@@ -62,7 +61,7 @@ const invoiceListColumns = {
   issuer_nit: invoices.issuer_nit,
   client_name: invoices.client_name,
   client_nit: invoices.client_nit,
-  source_file: invoices.source_file,
+  source_file: batchInvoices.source_file,
   created_at: invoices.created_at,
 };
 
@@ -483,7 +482,7 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       }
 
       // Ordered by created_at ASC per spec — cursor moves forward with >
-      const conditions = [eq(invoices.batch_id, batch_id)];
+      const conditions = [eq(batchInvoices.batch_id, batch_id)];
       if (decoded) {
         conditions.push(
           sql`(${invoices.created_at}, ${invoices.invoice_id}) > (${new Date(decoded.cursor_at)}::timestamptz, ${decoded.id})`,
@@ -493,6 +492,7 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const rows = await fastify.db
         .select(invoiceListColumns)
         .from(invoices)
+        .innerJoin(batchInvoices, eq(invoices.invoice_id, batchInvoices.invoice_id))
         .where(and(...conditions))
         .orderBy(asc(invoices.created_at), asc(invoices.invoice_id))
         .limit(limit + 1);
@@ -538,10 +538,11 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           client_name: invoices.client_name,
           client_nit: invoices.client_nit,
           line_items: invoices.line_items,
-          source_file: invoices.source_file,
+          source_file: batchInvoices.source_file,
         })
         .from(invoices)
-        .where(eq(invoices.batch_id, batch_id))
+        .innerJoin(batchInvoices, eq(invoices.invoice_id, batchInvoices.invoice_id))
+        .where(eq(batchInvoices.batch_id, batch_id))
         .orderBy(asc(invoices.issued_at), asc(invoices.invoice_id));
 
       const workbook = new ExcelJS.Workbook();
@@ -636,9 +637,10 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
         SELECT
           elem->>'name'                  AS product_name,
           SUM((elem->>'total')::numeric) AS total_amount
-        FROM invoices,
-          jsonb_array_elements(line_items) AS elem
-        WHERE batch_id = ${batch_id}
+        FROM invoices
+        INNER JOIN batch_invoices ON invoices.invoice_id = batch_invoices.invoice_id
+        CROSS JOIN jsonb_array_elements(line_items) AS elem
+        WHERE batch_invoices.batch_id = ${batch_id}
         GROUP BY product_name
         ORDER BY total_amount DESC
       `);
@@ -698,9 +700,10 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           SELECT
             elem->>'name'                     AS product_name,
             SUM((elem->>'quantity')::numeric) AS total_quantity
-          FROM ${invoices},
-            jsonb_array_elements(${invoices.line_items}) AS elem
-          WHERE ${invoices.batch_id} = ${batch_id}
+          FROM invoices
+          INNER JOIN batch_invoices ON invoices.invoice_id = batch_invoices.invoice_id
+          CROSS JOIN jsonb_array_elements(line_items) AS elem
+          WHERE batch_invoices.batch_id = ${batch_id}
           GROUP BY product_name
           ORDER BY total_quantity DESC
           LIMIT ${limit}
@@ -750,9 +753,10 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           SELECT
             elem->>'name'                  AS product_name,
             SUM((elem->>'total')::numeric) AS total_revenue
-          FROM ${invoices},
-            jsonb_array_elements(${invoices.line_items}) AS elem
-          WHERE ${invoices.batch_id} = ${batch_id}
+          FROM invoices
+          INNER JOIN batch_invoices ON invoices.invoice_id = batch_invoices.invoice_id
+          CROSS JOIN jsonb_array_elements(line_items) AS elem
+          WHERE batch_invoices.batch_id = ${batch_id}
           GROUP BY product_name
           ORDER BY total_revenue DESC
           LIMIT ${limit}
@@ -802,7 +806,8 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           invoice_count: sql<number>`COUNT(*)::int`,
         })
         .from(invoices)
-        .where(eq(invoices.batch_id, batch_id))
+        .innerJoin(batchInvoices, eq(invoices.invoice_id, batchInvoices.invoice_id))
+        .where(eq(batchInvoices.batch_id, batch_id))
         .groupBy(invoices.client_name, invoices.client_nit)
         .orderBy(sql`SUM(${invoices.total_amount}) DESC`)
         .limit(limit);
