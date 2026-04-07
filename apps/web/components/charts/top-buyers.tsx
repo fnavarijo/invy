@@ -18,9 +18,9 @@ import {
 import { ChartEmpty } from "@/components/charts/chart-empty"
 import type { TopBuyerItem } from "@/lib/api/analytics"
 
-type Props = { data: TopBuyerItem[] }
+type Props = { data: TopBuyerItem[]; description?: string }
 
-export function TopBuyers({ data }: Props) {
+export function TopBuyers({ data, description }: Props) {
   const chartData = data
     .map((item) => ({
       name: item.client_name,
@@ -32,7 +32,7 @@ export function TopBuyers({ data }: Props) {
     <Card>
       <CardHeader>
         <CardTitle>Principales compradores</CardTitle>
-        <CardDescription>Clientes con mayor gasto en este lote</CardDescription>
+        <CardDescription>{description ?? "Clientes con mayor gasto en este lote"}</CardDescription>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (

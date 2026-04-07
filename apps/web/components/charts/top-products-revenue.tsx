@@ -18,9 +18,9 @@ import {
 import { ChartEmpty } from "@/components/charts/chart-empty"
 import type { TopProductByRevenueItem } from "@/lib/api/analytics"
 
-type Props = { data: TopProductByRevenueItem[] }
+type Props = { data: TopProductByRevenueItem[]; description?: string }
 
-export function TopProductsRevenue({ data }: Props) {
+export function TopProductsRevenue({ data, description }: Props) {
   const chartData = data
     .map((item) => ({
       name: item.product_name,
@@ -32,7 +32,7 @@ export function TopProductsRevenue({ data }: Props) {
     <Card>
       <CardHeader>
         <CardTitle>Productos con mayor ingreso</CardTitle>
-        <CardDescription>Ingreso total por producto en este lote</CardDescription>
+        <CardDescription>{description ?? "Ingreso total por producto en este lote"}</CardDescription>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (

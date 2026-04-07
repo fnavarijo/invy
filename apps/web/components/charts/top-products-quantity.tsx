@@ -18,9 +18,9 @@ import {
 import { ChartEmpty } from '@/components/charts/chart-empty';
 import type { TopProductByQuantityItem } from '@/lib/api/analytics';
 
-type Props = { data: TopProductByQuantityItem[] };
+type Props = { data: TopProductByQuantityItem[]; description?: string };
 
-export function TopProductsQuantity({ data }: Props) {
+export function TopProductsQuantity({ data, description }: Props) {
   // I could stream here the result
 
   const chartData = data
@@ -34,7 +34,7 @@ export function TopProductsQuantity({ data }: Props) {
     <Card>
       <CardHeader>
         <CardTitle>Productos con mayor cantidad</CardTitle>
-        <CardDescription>Unidades vendidas por producto en este lote</CardDescription>
+        <CardDescription>{description ?? 'Unidades vendidas por producto en este lote'}</CardDescription>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (
