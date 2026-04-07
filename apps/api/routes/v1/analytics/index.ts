@@ -88,6 +88,7 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
           invoice_count: sql<number>`COUNT(*)::int`,
           total_amount: sql<string>`COALESCE(SUM(${invoices.total_amount}), 0)::text`,
           unique_issuers: sql<number>`COUNT(DISTINCT ${invoices.issuer_nit})::int`,
+          unique_clients: sql<number>`COUNT(DISTINCT ${invoices.client_nit})::int`,
         })
         .from(invoices)
         .where(
@@ -104,6 +105,7 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
         invoice_count: row?.invoice_count ?? 0,
         total_amount: Number(row?.total_amount ?? '0').toFixed(2),
         unique_issuers: row?.unique_issuers ?? 0,
+        unique_clients: row?.unique_clients ?? 0,
       });
     },
   );

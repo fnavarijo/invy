@@ -13,6 +13,7 @@ export type GlobalSummaryResponse = {
   invoice_count: number;
   total_amount: string;
   unique_issuers: number;
+  unique_clients: number;
 };
 
 export type GlobalTopProductsByQuantityResponse = {

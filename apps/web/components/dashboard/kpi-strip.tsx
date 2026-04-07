@@ -31,9 +31,9 @@ export async function KpiStrip({ range }: KpiStripProps) {
       icon: TrendingUp,
     },
     {
-      label: 'Emisores únicos',
-      value: summary.unique_issuers.toLocaleString('es-GT'),
-      sub: 'proveedores distintos',
+      label: 'Clientes únicos',
+      value: summary.unique_clients.toLocaleString('es-GT'),
+      sub: 'clientes distintos',
       icon: Building2,
     },
   ];
