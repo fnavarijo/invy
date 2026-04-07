@@ -30,6 +30,58 @@ export type GlobalInvoiceListResponse = {
   next_cursor: string | null;
 };
 
+export type IssuerItem = {
+  issuer_nit: string;
+  issuer_name: string;
+};
+
+export type ClientItem = {
+  client_nit: string;
+  client_name: string;
+};
+
+export async function listClients(
+  params: Pick<InvoiceListParams, 'issuedFrom' | 'issuedTo'>,
+  config?: RequestConfig,
+): Promise<ClientItem[]> {
+  const query = new URLSearchParams();
+  if (params.issuedFrom) query.set('issued_from', params.issuedFrom);
+  if (params.issuedTo) query.set('issued_to', params.issuedTo);
+
+  const res = await fetch(`${API_BASE_URL}/v1/invoices/clients?${query.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildHeaders({ authToken: config?.authToken }),
+    },
+    signal: config?.signal,
+  });
+
+  const body = await handleResponse<{ data: ClientItem[] }>(res);
+  return body.data;
+}
+
+export async function listIssuers(
+  params: Pick<InvoiceListParams, 'issuedFrom' | 'issuedTo'>,
+  config?: RequestConfig,
+): Promise<IssuerItem[]> {
+  const query = new URLSearchParams();
+  if (params.issuedFrom) query.set('issued_from', params.issuedFrom);
+  if (params.issuedTo) query.set('issued_to', params.issuedTo);
+
+  const res = await fetch(`${API_BASE_URL}/v1/invoices/issuers?${query.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildHeaders({ authToken: config?.authToken }),
+    },
+    signal: config?.signal,
+  });
+
+  const body = await handleResponse<{ data: IssuerItem[] }>(res);
+  return body.data;
+}
+
 export async function listInvoices(
   params: InvoiceListParams,
   config?: RequestConfig,

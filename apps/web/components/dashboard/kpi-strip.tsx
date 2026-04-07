@@ -6,14 +6,16 @@ import type { DateRange } from '@/lib/date-range';
 
 interface KpiStripProps {
   range: DateRange;
+  issuerNit?: string;
+  clientNit?: string;
 }
 
-export async function KpiStrip({ range }: KpiStripProps) {
+export async function KpiStrip({ range, issuerNit, clientNit }: KpiStripProps) {
   const { getToken } = await auth();
   const authToken = await getToken();
 
   const summary = await getGlobalSummary(
-    { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo },
+    { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, issuerNit, clientNit },
     { authToken },
   );
 

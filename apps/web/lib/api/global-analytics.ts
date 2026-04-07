@@ -4,6 +4,8 @@ import type { RequestConfig } from '@/lib/api/types';
 export type GlobalAnalyticsParams = {
   issuedFrom: string;
   issuedTo: string;
+  issuerNit?: string;
+  clientNit?: string;
   limit?: number;
 };
 
@@ -41,12 +43,14 @@ export type GlobalTopBuyersResponse = {
 
 function buildUrl(
   path: string,
-  { issuedFrom, issuedTo, limit }: GlobalAnalyticsParams,
+  { issuedFrom, issuedTo, issuerNit, clientNit, limit }: GlobalAnalyticsParams,
 ): string {
   const params = new URLSearchParams({
     issued_from: issuedFrom,
     issued_to: issuedTo,
   });
+  if (issuerNit) params.set('issuer_nit', issuerNit);
+  if (clientNit) params.set('client_nit', clientNit);
   if (limit !== undefined) params.set('limit', String(limit));
   return `${API_BASE_URL}/v1/analytics/${path}?${params.toString()}`;
 }

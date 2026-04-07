@@ -17,13 +17,15 @@ function ChartSkeleton() {
 
 interface GlobalAnalyticsProps {
   range: DateRange;
+  issuerNit?: string;
+  clientNit?: string;
 }
 
-export async function GlobalAnalytics({ range }: GlobalAnalyticsProps) {
+export async function GlobalAnalytics({ range, issuerNit, clientNit }: GlobalAnalyticsProps) {
   const { getToken } = await auth();
   const authToken = await getToken();
 
-  const params = { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo };
+  const params = { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, issuerNit, clientNit };
 
   const [analyticsQuantity, analyticsRevenue, analyticsBuyers] = await Promise.all([
     getGlobalTopProductsByQuantity(params, { authToken }),

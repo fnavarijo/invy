@@ -7,6 +7,8 @@ import { buildError } from '../../../lib/http.ts';
 interface AnalyticsQuery {
   issued_from?: string;
   issued_to?: string;
+  issuer_nit?: string;
+  client_nit?: string;
   limit?: string;
 }
 
@@ -19,48 +21,20 @@ function parseDateRange(
   issuedTo: string | undefined,
 ): DateRangeResult {
   if (!issuedFrom || !issuedTo) {
-    return {
-      ok: false,
-      status: 400,
-      body: buildError(
-        'INVALID_PARAM',
-        '"issued_from" and "issued_to" are required.',
-      ),
-    };
+    return { ok: false, status: 400, body: buildError('INVALID_PARAM', '"issued_from" and "issued_to" are required.') };
   }
 
   const from = new Date(issuedFrom);
   const to = new Date(issuedTo);
 
   if (isNaN(from.getTime())) {
-    return {
-      ok: false,
-      status: 400,
-      body: buildError(
-        'INVALID_PARAM',
-        '"issued_from" must be a valid ISO 8601 date.',
-      ),
-    };
+    return { ok: false, status: 400, body: buildError('INVALID_PARAM', '"issued_from" must be a valid ISO 8601 date.') };
   }
   if (isNaN(to.getTime())) {
-    return {
-      ok: false,
-      status: 400,
-      body: buildError(
-        'INVALID_PARAM',
-        '"issued_to" must be a valid ISO 8601 date.',
-      ),
-    };
+    return { ok: false, status: 400, body: buildError('INVALID_PARAM', '"issued_to" must be a valid ISO 8601 date.') };
   }
   if (to < from) {
-    return {
-      ok: false,
-      status: 400,
-      body: buildError(
-        'INVALID_PARAM',
-        '"issued_to" must not be before "issued_from".',
-      ),
-    };
+    return { ok: false, status: 400, body: buildError('INVALID_PARAM', '"issued_to" must not be before "issued_from".') };
   }
 
   return { ok: true, from, to };
@@ -75,13 +49,17 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
       reply: FastifyReply,
     ) => {
       const { userId } = getAuth(request);
-      const rangeResult = parseDateRange(
-        request.query.issued_from,
-        request.query.issued_to,
-      );
-      if (!rangeResult.ok)
-        return reply.status(rangeResult.status).send(rangeResult.body);
+      const rangeResult = parseDateRange(request.query.issued_from, request.query.issued_to);
+      if (!rangeResult.ok) return reply.status(rangeResult.status).send(rangeResult.body);
       const range = rangeResult;
+
+      const conditions = [
+        eq(invoices.user_id, userId!),
+        gte(invoices.issued_at, range.from),
+        lte(invoices.issued_at, range.to),
+      ];
+      if (request.query.issuer_nit) conditions.push(eq(invoices.issuer_nit, request.query.issuer_nit));
+      if (request.query.client_nit) conditions.push(eq(invoices.client_nit, request.query.client_nit));
 
       const [row] = await fastify.db
         .select({
@@ -91,13 +69,7 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
           unique_clients: sql<number>`COUNT(DISTINCT ${invoices.client_nit})::int`,
         })
         .from(invoices)
-        .where(
-          and(
-            eq(invoices.user_id, userId!),
-            gte(invoices.issued_at, range.from),
-            lte(invoices.issued_at, range.to),
-          ),
-        );
+        .where(and(...conditions));
 
       return reply.send({
         issued_from: request.query.issued_from,
@@ -118,18 +90,17 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
       reply: FastifyReply,
     ) => {
       const { userId } = getAuth(request);
-      const rangeResult = parseDateRange(
-        request.query.issued_from,
-        request.query.issued_to,
-      );
-      if (!rangeResult.ok)
-        return reply.status(rangeResult.status).send(rangeResult.body);
+      const rangeResult = parseDateRange(request.query.issued_from, request.query.issued_to);
+      if (!rangeResult.ok) return reply.status(rangeResult.status).send(rangeResult.body);
       const range = rangeResult;
 
-      const limit = Math.min(
-        parseInt(request.query.limit ?? '10', 10) || 10,
-        50,
-      );
+      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+      const issuerFilter = request.query.issuer_nit
+        ? sql`AND invoices.issuer_nit = ${request.query.issuer_nit}`
+        : sql``;
+      const clientFilter = request.query.client_nit
+        ? sql`AND invoices.client_nit = ${request.query.client_nit}`
+        : sql``;
 
       const rows = await fastify.db.execute<{
         product_name: string;
@@ -143,6 +114,8 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
         WHERE invoices.user_id = ${userId!}
           AND invoices.issued_at >= ${range.from.toISOString()}::timestamptz
           AND invoices.issued_at <= ${range.to.toISOString()}::timestamptz
+          ${issuerFilter}
+          ${clientFilter}
         GROUP BY product_name
         ORDER BY total_quantity DESC
         LIMIT ${limit}
@@ -167,20 +140,17 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
       reply: FastifyReply,
     ) => {
       const { userId } = getAuth(request);
-      const rangeResult = parseDateRange(
-        request.query.issued_from,
-        request.query.issued_to,
-      );
-      if (!rangeResult.ok)
-        return reply.status(rangeResult.status).send(rangeResult.body);
+      const rangeResult = parseDateRange(request.query.issued_from, request.query.issued_to);
+      if (!rangeResult.ok) return reply.status(rangeResult.status).send(rangeResult.body);
       const range = rangeResult;
 
-      const limit = Math.min(
-        parseInt(request.query.limit ?? '10', 10) || 10,
-        50,
-      );
-
-      console.log('Range', range);
+      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+      const issuerFilter = request.query.issuer_nit
+        ? sql`AND invoices.issuer_nit = ${request.query.issuer_nit}`
+        : sql``;
+      const clientFilter = request.query.client_nit
+        ? sql`AND invoices.client_nit = ${request.query.client_nit}`
+        : sql``;
 
       const rows = await fastify.db.execute<{
         product_name: string;
@@ -194,6 +164,8 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
         WHERE invoices.user_id = ${userId!}
           AND invoices.issued_at >= ${range.from.toISOString()}::timestamptz
           AND invoices.issued_at <= ${range.to.toISOString()}::timestamptz
+          ${issuerFilter}
+          ${clientFilter}
         GROUP BY product_name
         ORDER BY total_revenue DESC
         LIMIT ${limit}
@@ -218,18 +190,19 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
       reply: FastifyReply,
     ) => {
       const { userId } = getAuth(request);
-      const rangeResult = parseDateRange(
-        request.query.issued_from,
-        request.query.issued_to,
-      );
-      if (!rangeResult.ok)
-        return reply.status(rangeResult.status).send(rangeResult.body);
+      const rangeResult = parseDateRange(request.query.issued_from, request.query.issued_to);
+      if (!rangeResult.ok) return reply.status(rangeResult.status).send(rangeResult.body);
       const range = rangeResult;
 
-      const limit = Math.min(
-        parseInt(request.query.limit ?? '10', 10) || 10,
-        50,
-      );
+      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+
+      const conditions = [
+        eq(invoices.user_id, userId!),
+        gte(invoices.issued_at, range.from),
+        lte(invoices.issued_at, range.to),
+      ];
+      if (request.query.issuer_nit) conditions.push(eq(invoices.issuer_nit, request.query.issuer_nit));
+      if (request.query.client_nit) conditions.push(eq(invoices.client_nit, request.query.client_nit));
 
       const rows = await fastify.db
         .select({
@@ -239,13 +212,7 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
           invoice_count: sql<number>`COUNT(*)::int`,
         })
         .from(invoices)
-        .where(
-          and(
-            eq(invoices.user_id, userId!),
-            gte(invoices.issued_at, range.from),
-            lte(invoices.issued_at, range.to),
-          ),
-        )
+        .where(and(...conditions))
         .groupBy(invoices.client_name, invoices.client_nit)
         .orderBy(sql`SUM(${invoices.total_amount}) DESC`)
         .limit(limit);

@@ -75,12 +75,14 @@ export async function InvoiceTable({
   const { getToken } = await auth();
   const authToken = await getToken();
 
+  const rawIssuerNit = searchParams['issuer_nit'];
+  const issuerNit = Array.isArray(rawIssuerNit) ? rawIssuerNit[0] : rawIssuerNit;
+
+  const rawClientNit = searchParams['client_nit'];
+  const clientNit = Array.isArray(rawClientNit) ? rawClientNit[0] : rawClientNit;
+
   const result = await listInvoices(
-    {
-      issuedFrom: range.issuedFrom,
-      issuedTo: range.issuedTo,
-      limit,
-    },
+    { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, limit, issuerNit, clientNit },
     { authToken },
   );
 
@@ -88,7 +90,7 @@ export async function InvoiceTable({
 
   return (
     <section aria-labelledby="invoices-heading">
-      <div className="mb-4 flex items-baseline justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <Text size="h2" id="invoices-heading">
             Facturas
@@ -97,7 +99,7 @@ export async function InvoiceTable({
             Las últimas {limit} facturas del periodo ordenadas por fecha.
           </Text>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <a
             href={buildExportUrl(range)}
             download

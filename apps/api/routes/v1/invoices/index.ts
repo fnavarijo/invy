@@ -128,6 +128,60 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
     },
   );
 
+  // ── GET /v1/invoices/issuers ──────────────────────────────────────────────────
+  fastify.get<{ Querystring: Pick<InvoiceListQuery, 'issued_from' | 'issued_to'> }>(
+    '/issuers',
+    async (
+      request: FastifyRequest<{ Querystring: Pick<InvoiceListQuery, 'issued_from' | 'issued_to'> }>,
+      reply: FastifyReply,
+    ) => {
+      const { userId } = getAuth(request);
+      const { issued_from, issued_to } = request.query;
+
+      const conditions = [eq(invoices.user_id, userId!)];
+      if (issued_from) conditions.push(gte(invoices.issued_at, new Date(issued_from)));
+      if (issued_to) conditions.push(lte(invoices.issued_at, new Date(issued_to)));
+
+      const rows = await fastify.db
+        .selectDistinctOn([invoices.issuer_nit], {
+          issuer_nit: invoices.issuer_nit,
+          issuer_name: invoices.issuer_name,
+        })
+        .from(invoices)
+        .where(and(...conditions))
+        .orderBy(asc(invoices.issuer_nit), asc(invoices.issuer_name));
+
+      return reply.send({ data: rows });
+    },
+  );
+
+  // ── GET /v1/invoices/clients ──────────────────────────────────────────────────
+  fastify.get<{ Querystring: Pick<InvoiceListQuery, 'issued_from' | 'issued_to'> }>(
+    '/clients',
+    async (
+      request: FastifyRequest<{ Querystring: Pick<InvoiceListQuery, 'issued_from' | 'issued_to'> }>,
+      reply: FastifyReply,
+    ) => {
+      const { userId } = getAuth(request);
+      const { issued_from, issued_to } = request.query;
+
+      const conditions = [eq(invoices.user_id, userId!)];
+      if (issued_from) conditions.push(gte(invoices.issued_at, new Date(issued_from)));
+      if (issued_to) conditions.push(lte(invoices.issued_at, new Date(issued_to)));
+
+      const rows = await fastify.db
+        .selectDistinctOn([invoices.client_nit], {
+          client_nit: invoices.client_nit,
+          client_name: invoices.client_name,
+        })
+        .from(invoices)
+        .where(and(...conditions))
+        .orderBy(asc(invoices.client_nit), asc(invoices.client_name));
+
+      return reply.send({ data: rows });
+    },
+  );
+
   // ── GET /v1/invoices/export/xlsx ─────────────────────────────────────────────
   fastify.get<{ Querystring: Omit<InvoiceListQuery, 'limit' | 'cursor'> }>(
     '/export/xlsx',
