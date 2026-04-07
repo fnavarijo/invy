@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
+import { Download } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
@@ -59,6 +60,13 @@ function LimitSelector({
   );
 }
 
+function buildExportUrl(range: DateRange) {
+  const params = new URLSearchParams();
+  if (range.issuedFrom) params.set('issued_from', range.issuedFrom);
+  if (range.issuedTo) params.set('issued_to', range.issuedTo);
+  return `/api/invoices/export/xlsx?${params.toString()}`;
+}
+
 export async function InvoiceTable({
   range,
   limit,
@@ -89,7 +97,17 @@ export async function InvoiceTable({
             Las últimas {limit} facturas del periodo ordenadas por fecha.
           </Text>
         </div>
-        <LimitSelector current={limit} searchParams={searchParams} />
+        <div className="flex items-center gap-2">
+          <a
+            href={buildExportUrl(range)}
+            download
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <Download className="size-3.5" />
+            Exportar
+          </a>
+          <LimitSelector current={limit} searchParams={searchParams} />
+        </div>
       </div>
 
       <Card className="overflow-hidden">

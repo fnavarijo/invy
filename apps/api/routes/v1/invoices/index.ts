@@ -1,7 +1,8 @@
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
-import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, desc, asc, gte, lte, sql } from 'drizzle-orm';
 import { invoices } from '@invy/db';
 import { getAuth } from '@clerk/fastify';
+import ExcelJS from 'exceljs';
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts';
 
 interface InvoiceListQuery {
@@ -124,6 +125,112 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
       }
 
       return reply.send({ data, next_cursor });
+    },
+  );
+
+  // ── GET /v1/invoices/export/xlsx ─────────────────────────────────────────────
+  fastify.get<{ Querystring: Omit<InvoiceListQuery, 'limit' | 'cursor'> }>(
+    '/export/xlsx',
+    async (
+      request: FastifyRequest<{ Querystring: Omit<InvoiceListQuery, 'limit' | 'cursor'> }>,
+      reply: FastifyReply,
+    ) => {
+      const { userId } = getAuth(request);
+      const { type, currency, issuer_nit, client_nit, issued_from, issued_to } = request.query;
+
+      if (issued_from !== undefined && isNaN(new Date(issued_from).getTime())) {
+        return reply.status(400).send(buildError('INVALID_PARAM', '"issued_from" must be a valid ISO 8601 date.'));
+      }
+      if (issued_to !== undefined && isNaN(new Date(issued_to).getTime())) {
+        return reply.status(400).send(buildError('INVALID_PARAM', '"issued_to" must be a valid ISO 8601 date.'));
+      }
+
+      const conditions = [eq(invoices.user_id, userId!)];
+      if (type) conditions.push(eq(invoices.type, type));
+      if (currency) conditions.push(eq(invoices.currency, currency));
+      if (issuer_nit) conditions.push(eq(invoices.issuer_nit, issuer_nit));
+      if (client_nit) conditions.push(eq(invoices.client_nit, client_nit));
+      if (issued_from) conditions.push(gte(invoices.issued_at, new Date(issued_from)));
+      if (issued_to) conditions.push(lte(invoices.issued_at, new Date(issued_to)));
+
+      const rows = await fastify.db
+        .select({
+          invoice_number: invoices.invoice_number,
+          type: invoices.type,
+          currency: invoices.currency,
+          total_amount: invoices.total_amount,
+          issued_at: invoices.issued_at,
+          issuer_name: invoices.issuer_name,
+          issuer_nit: invoices.issuer_nit,
+          client_name: invoices.client_name,
+          client_nit: invoices.client_nit,
+          line_items: invoices.line_items,
+        })
+        .from(invoices)
+        .where(and(...conditions))
+        .orderBy(asc(invoices.issued_at), asc(invoices.invoice_id));
+
+      const workbook = new ExcelJS.Workbook();
+
+      const invoiceSheet = workbook.addWorksheet('Facturas');
+      invoiceSheet.columns = [
+        { header: 'Numero de factura', key: 'invoice_number', width: 22 },
+        { header: 'Tipo', key: 'type', width: 14 },
+        { header: 'Moneda', key: 'currency', width: 10 },
+        { header: 'Valor Total', key: 'total_amount', width: 16 },
+        { header: 'Fecha Generacion', key: 'issued_at', width: 24 },
+        { header: 'Nombre emisor', key: 'issuer_name', width: 32 },
+        { header: 'NIT emisor', key: 'issuer_nit', width: 16 },
+        { header: 'Nombre cliente', key: 'client_name', width: 32 },
+        { header: 'NIT cliente', key: 'client_nit', width: 16 },
+      ];
+
+      for (const row of rows) {
+        invoiceSheet.addRow({
+          invoice_number: row.invoice_number,
+          type: row.type,
+          currency: row.currency,
+          total_amount: Number(row.total_amount),
+          issued_at: new Date(row.issued_at).toISOString(),
+          issuer_name: row.issuer_name,
+          issuer_nit: row.issuer_nit,
+          client_name: row.client_name,
+          client_nit: row.client_nit,
+        });
+      }
+
+      const lineItemsSheet = workbook.addWorksheet('Detalle de productos');
+      lineItemsSheet.columns = [
+        { header: 'Numero de factura', key: 'invoice_number', width: 22 },
+        { header: 'Producto', key: 'name', width: 36 },
+        { header: 'Tipo', key: 'type', width: 14 },
+        { header: 'Cantidad', key: 'quantity', width: 12 },
+        { header: 'Precio unitario', key: 'unit_price', width: 16 },
+        { header: 'Total', key: 'total', width: 16 },
+      ];
+
+      for (const row of rows) {
+        for (const item of row.line_items ?? []) {
+          lineItemsSheet.addRow({
+            invoice_number: row.invoice_number,
+            name: item.name,
+            type: item.type,
+            quantity: item.quantity,
+            unit_price: Number(item.unit_price),
+            total: Number(item.total),
+          });
+        }
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const from = issued_from ? issued_from.slice(0, 10) : 'all';
+      const to = issued_to ? issued_to.slice(0, 10) : 'all';
+      const fileName = `facturas_${from}_${to}.xlsx`;
+
+      return reply
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .send(Buffer.from(buffer));
     },
   );
 
