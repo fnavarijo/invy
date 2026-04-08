@@ -6,9 +6,9 @@ const MAX_XML_ENTRIES = parseInt(process.env['MAX_XML_ENTRIES'] ?? '1000', 10)
 
 type XmlEntry = { fileName: string; content: Buffer }
 
-export async function extractXmlsFromZip(stream: Readable): Promise<XmlEntry[]> {
-  const results: XmlEntry[] = []
+export async function* streamXmlsFromZip(stream: Readable): AsyncGenerator<XmlEntry> {
   const zip = stream.pipe(unzipper.Parse({ forceStream: true }))
+  let count = 0
 
   for await (const entry of zip) {
     const entryPath: string = entry.path
@@ -23,14 +23,13 @@ export async function extractXmlsFromZip(stream: Readable): Promise<XmlEntry[]> 
       continue
     }
 
-    if (results.length >= MAX_XML_ENTRIES) {
+    if (count >= MAX_XML_ENTRIES) {
       entry.autodrain()
       throw new NonRetryableError(`ZIP exceeds maximum entry limit of ${MAX_XML_ENTRIES}`)
     }
 
+    count++
     const content = await entry.buffer()
-    results.push({ fileName: entryPath, content })
+    yield { fileName: entryPath, content }
   }
-
-  return results
 }
