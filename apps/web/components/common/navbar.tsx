@@ -16,6 +16,13 @@ export function Navbar() {
         </a>
         <Separator orientation="vertical" className="h-4" aria-hidden="true" />
         <p className="text-sm text-muted-foreground">Procesamiento de Facturas</p>
+        <Separator orientation="vertical" className="h-4" aria-hidden="true" />
+        <a
+          href="/batches"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Lotes
+        </a>
         <NavbarActions />
       </nav>
     </header>

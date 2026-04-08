@@ -176,6 +176,14 @@ export function useBatchUpload(options?: { onComplete?: () => void }): {
             return;
           }
 
+          if (err instanceof ApiError && err.status === 404) {
+            dispatch({
+              type: 'FAIL',
+              error: 'El lote fue eliminado.',
+            });
+            return;
+          }
+
           networkRetryCountRef.current += 1;
           if (networkRetryCountRef.current >= MAX_NETWORK_RETRIES) {
             dispatch({

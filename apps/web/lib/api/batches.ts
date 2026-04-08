@@ -1,4 +1,9 @@
-import { API_BASE_URL, buildHeaders, handleResponse, ApiError } from '@/lib/api/helpers';
+import {
+  API_BASE_URL,
+  buildHeaders,
+  handleResponse,
+  ApiError,
+} from '@/lib/api/helpers';
 import type { RequestConfig } from '@/lib/api/types';
 
 // ---------------------------------------------------------------------------
@@ -97,19 +102,53 @@ export async function getBatch(
   return handleResponse<BatchDetailResponse>(res);
 }
 
-export async function listBatches({
-  signal,
-  authToken,
-}: RequestConfig): Promise<BatchListResponse> {
+export async function listBatches(
+  { signal, authToken }: RequestConfig,
+  cursor?: string,
+): Promise<BatchListResponse> {
   const headers = buildHeaders({ authToken });
 
-  const res = await fetch(`${API_BASE_URL}/v1/batches`, {
+  const url = new URL(`${API_BASE_URL}/v1/batches`);
+  if (cursor) {
+    url.searchParams.set('cursor', cursor);
+  }
+
+  const res = await fetch(url.toString(), {
     method: 'GET',
     headers: { 'Content-Type': 'application/json', ...headers },
     signal,
   });
 
   return handleResponse<BatchListResponse>(res);
+}
+
+export async function deleteBatch(
+  batchId: string,
+  config?: RequestConfig,
+): Promise<void> {
+  const headers = buildHeaders({ authToken: config?.authToken });
+  const res = await fetch(`${API_BASE_URL}/v1/batches/${batchId}`, {
+    method: 'DELETE',
+    headers: headers,
+    signal: config?.signal,
+  });
+
+  if (!res.ok) {
+    let code = 'UNKNOWN_ERROR';
+    let message = `Request failed with status ${res.status}`;
+    try {
+      const body = (await res.json()) as {
+        error?: { code?: string; message?: string };
+      };
+      if (body.error) {
+        code = body.error.code ?? code;
+        message = body.error.message ?? message;
+      }
+    } catch {
+      /* non-JSON body */
+    }
+    throw new ApiError(res.status, code, message);
+  }
 }
 
 export async function exportBatchXlsx(
@@ -128,7 +167,9 @@ export async function exportBatchXlsx(
     let code = 'UNKNOWN_ERROR';
     let message = `Request failed with status ${res.status}`;
     try {
-      const body = (await res.json()) as { error?: { code?: string; message?: string } };
+      const body = (await res.json()) as {
+        error?: { code?: string; message?: string };
+      };
       if (body.error) {
         code = body.error.code ?? code;
         message = body.error.message ?? message;
@@ -157,7 +198,9 @@ export async function exportBatchProductsXlsx(
     let code = 'UNKNOWN_ERROR';
     let message = `Request failed with status ${res.status}`;
     try {
-      const body = (await res.json()) as { error?: { code?: string; message?: string } };
+      const body = (await res.json()) as {
+        error?: { code?: string; message?: string };
+      };
       if (body.error) {
         code = body.error.code ?? code;
         message = body.error.message ?? message;

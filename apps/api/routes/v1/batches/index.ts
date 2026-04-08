@@ -423,6 +423,15 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           );
       }
 
+      await fastify.db.execute(sql`
+        DELETE FROM invoices
+        WHERE user_id = ${ownerId}
+          AND NOT EXISTS (
+            SELECT 1 FROM batch_invoices
+            WHERE batch_invoices.invoice_id = invoices.invoice_id
+          )
+      `);
+
       const fileKey = deleted[0]!.file_key;
       if (fileKey) {
         try {

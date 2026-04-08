@@ -1,48 +1,12 @@
 import { auth } from '@clerk/nextjs/server';
-import { FileArchive, FileText, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { listBatches, type BatchListItem, type BatchStatus } from '@/lib/api/batches';
+import { listBatches, type BatchListItem } from '@/lib/api/batches';
+import { getStatusStyle, STATUS_LABELS, FileIcon, formatRelativeDate } from '@/lib/batch-utils';
 
 const MAX_ROWS = 10;
 const SKELETON_COUNT = 5;
-
-function getStatusStyle(status: BatchStatus): React.CSSProperties {
-  return {
-    backgroundColor: `var(--color-status-${status}-bg)`,
-    color: `var(--color-status-${status}-text)`,
-    borderColor: `var(--color-status-${status}-bg)`,
-  };
-}
-
-const STATUS_LABELS: Record<BatchStatus, string> = {
-  queued: 'En cola',
-  processing: 'Procesando',
-  done: 'Completado',
-  failed: 'Fallido',
-};
-
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffSecs < 60) return 'Ahora mismo';
-  if (diffMins < 60) return `hace ${diffMins}m`;
-  if (diffHours < 24) return `hace ${diffHours}h`;
-  if (diffDays === 1) return 'Ayer';
-  if (diffDays < 30) return `hace ${diffDays}d`;
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function FileIcon({ fileType }: { fileType: string }) {
-  if (fileType === 'zip') return <FileArchive className="size-4 shrink-0 text-muted-foreground" aria-hidden />;
-  return <FileText className="size-4 shrink-0 text-muted-foreground" aria-hidden />;
-}
 
 function SkeletonRow() {
   return (
