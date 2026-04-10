@@ -113,3 +113,48 @@ export async function listInvoices(
 
   return handleResponse<GlobalInvoiceListResponse>(res);
 }
+
+export type InvoiceProductItem = {
+  name: string;
+  type: string;
+  total_quantity: string;
+  product_total: string;
+};
+
+export type InvoiceProductsParams = {
+  issuedFrom: string;
+  issuedTo: string;
+  currency: string;
+  issuerNit?: string;
+  clientNit?: string;
+};
+
+export type InvoiceProductsResponse = {
+  currency: string;
+  invoices_total: string;
+  products_total: string;
+  products: InvoiceProductItem[];
+};
+
+export async function getInvoiceProducts(
+  params: InvoiceProductsParams,
+  config?: RequestConfig,
+): Promise<InvoiceProductsResponse> {
+  const query = new URLSearchParams();
+  query.set('issued_from', params.issuedFrom);
+  query.set('issued_to', params.issuedTo);
+  query.set('currency', params.currency);
+  if (params.issuerNit) query.set('issuer_nit', params.issuerNit);
+  if (params.clientNit) query.set('client_nit', params.clientNit);
+
+  const res = await fetch(`${API_BASE_URL}/v1/invoices/products?${query.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildHeaders({ authToken: config?.authToken }),
+    },
+    signal: config?.signal,
+  });
+
+  return handleResponse<InvoiceProductsResponse>(res);
+}

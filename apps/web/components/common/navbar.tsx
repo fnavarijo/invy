@@ -23,6 +23,12 @@ export function Navbar() {
         >
           Lotes
         </a>
+        <a
+          href="/products"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Productos
+        </a>
         <NavbarActions />
       </nav>
     </header>

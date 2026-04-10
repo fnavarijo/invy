@@ -288,6 +288,125 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
     },
   );
 
+  // ── GET /v1/invoices/products ─────────────────────────────────────────────────
+  fastify.get<{
+    Querystring: {
+      issued_from: string;
+      issued_to: string;
+      currency: string;
+      issuer_nit?: string;
+      client_nit?: string;
+    };
+  }>(
+    '/products',
+    async (
+      request: FastifyRequest<{
+        Querystring: {
+          issued_from: string;
+          issued_to: string;
+          currency: string;
+          issuer_nit?: string;
+          client_nit?: string;
+        };
+      }>,
+      reply: FastifyReply,
+    ) => {
+      const { userId } = getAuth(request);
+      const { issued_from, issued_to, currency, issuer_nit, client_nit } = request.query;
+
+      if (!issued_from || !issued_to) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"issued_from" and "issued_to" are required.'));
+      }
+
+      const from = new Date(issued_from);
+      const to = new Date(issued_to);
+
+      if (isNaN(from.getTime())) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"issued_from" must be a valid ISO 8601 date.'));
+      }
+      if (isNaN(to.getTime())) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"issued_to" must be a valid ISO 8601 date.'));
+      }
+      if (to < from) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"issued_to" must not be before "issued_from".'));
+      }
+      if (!currency) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"currency" is required.'));
+      }
+
+      const conditions = [
+        eq(invoices.user_id, userId!),
+        eq(invoices.currency, currency),
+        gte(invoices.issued_at, from),
+        lte(invoices.issued_at, to),
+      ];
+      if (issuer_nit) conditions.push(eq(invoices.issuer_nit, issuer_nit));
+      if (client_nit) conditions.push(eq(invoices.client_nit, client_nit));
+
+      const issuerFilter = issuer_nit
+        ? sql`AND invoices.issuer_nit = ${issuer_nit}`
+        : sql``;
+      const clientFilter = client_nit
+        ? sql`AND invoices.client_nit = ${client_nit}`
+        : sql``;
+
+      const [totalResult, productRows] = await Promise.all([
+        fastify.db
+          .select({
+            invoices_total: sql<string>`COALESCE(SUM(${invoices.total_amount}), 0)`,
+          })
+          .from(invoices)
+          .where(and(...conditions)),
+        fastify.db.execute<{
+          name: string;
+          type: string;
+          total_quantity: string;
+          product_total: string;
+        }>(sql`
+          SELECT
+            elem->>'name'                        AS name,
+            elem->>'type'                        AS type,
+            SUM((elem->>'quantity')::numeric)    AS total_quantity,
+            SUM((elem->>'total')::numeric)       AS product_total
+          FROM invoices
+          CROSS JOIN jsonb_array_elements(line_items) AS elem
+          WHERE invoices.user_id   = ${userId!}
+            AND invoices.currency  = ${currency}
+            AND invoices.issued_at >= ${from.toISOString()}::timestamptz
+            AND invoices.issued_at <= ${to.toISOString()}::timestamptz
+            ${issuerFilter}
+            ${clientFilter}
+          GROUP BY elem->>'name', elem->>'type'
+          ORDER BY product_total DESC
+          LIMIT 500
+        `),
+      ]);
+
+      const invoices_total = Number(totalResult[0]?.invoices_total ?? 0).toFixed(2);
+      const products = productRows.map((r) => ({
+        name: r.name,
+        type: r.type,
+        total_quantity: Number(r.total_quantity).toFixed(2),
+        product_total: Number(r.product_total).toFixed(2),
+      }));
+      const products_total = products
+        .reduce((sum, p) => sum + Number(p.product_total), 0)
+        .toFixed(2);
+
+      return reply.send({ currency, invoices_total, products_total, products });
+    },
+  );
+
   // ── GET /v1/invoices/:invoice_id ──────────────────────────────────────────────
   fastify.get<{ Params: { invoice_id: string } }>(
     '/:invoice_id',
