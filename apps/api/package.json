@@ -5,7 +5,8 @@
   "type": "module",
   "main": "app.ts",
   "scripts": {
-    "dev": "node --experimental-strip-types --env-file-if-exists=.env --watch server.ts",
+    "dev:before": "docker compose up -d",
+    "dev": "npm run dev:before && node --experimental-strip-types --env-file-if-exists=.env --watch server.ts",
     "start": "node --experimental-strip-types --env-file-if-exists=.env server.ts",
     "test": "node --experimental-strip-types --test 'test/**/*.test.ts'",
     "typecheck": "tsc --noEmit",

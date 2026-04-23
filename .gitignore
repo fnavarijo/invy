@@ -5,3 +5,6 @@ node_modules
 .env
 
 dist
+
+# Turbo
+.turbo
