@@ -6,6 +6,14 @@ import { Text } from '@/components/ui/text';
 import { listInvoices } from '@/lib/api/invoices';
 import { formatDate } from '@/lib/date-range';
 import type { DateRange } from '@/lib/date-range';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/table';
 
 const LIMIT_OPTIONS = [25, 50, 100] as const;
 type LimitOption = (typeof LIMIT_OPTIONS)[number];
@@ -77,13 +85,23 @@ export async function InvoiceTable({
   const authToken = await getToken();
 
   const rawIssuerNit = searchParams['issuer_nit'];
-  const issuerNit = Array.isArray(rawIssuerNit) ? rawIssuerNit[0] : rawIssuerNit;
+  const issuerNit = Array.isArray(rawIssuerNit)
+    ? rawIssuerNit[0]
+    : rawIssuerNit;
 
   const rawClientNit = searchParams['client_nit'];
-  const clientNit = Array.isArray(rawClientNit) ? rawClientNit[0] : rawClientNit;
+  const clientNit = Array.isArray(rawClientNit)
+    ? rawClientNit[0]
+    : rawClientNit;
 
   const result = await listInvoices(
-    { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, limit, issuerNit, clientNit },
+    {
+      issuedFrom: range.issuedFrom,
+      issuedTo: range.issuedTo,
+      limit,
+      issuerNit,
+      clientNit,
+    },
     { authToken },
   );
 
@@ -113,93 +131,95 @@ export async function InvoiceTable({
         </div>
       </div>
 
-      <Card className="overflow-hidden">
-        {invoices.length === 0 ? (
-          <CardContent className="py-16 text-center">
-            <p className="text-sm text-muted-foreground">
-              No hay facturas en el rango seleccionado.
-            </p>
-          </CardContent>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/40">
-                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
+      {invoices.length > 0 && (
+        <div>
+          <div className="overflow-x-auto bg-card rounded-xl border border-border">
+            <Table>
+              <TableHeader className="bg-sidebar">
+                <TableRow>
+                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Fecha
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     No. Factura
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Tipo
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Cliente
-                  </th>
-                  <th className="hidden px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground md:table-cell">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     NIT Cliente
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Total
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-border ">
                 {invoices.map((inv) => (
-                  <tr
+                  <TableRow
                     key={inv.invoice_id}
-                    className="transition-colors hover:bg-accent/50"
+                    className="group transition-colors duration-150 hover:bg-primary/10 even:bg-muted/30"
                   >
-                    <td className="whitespace-nowrap px-4 py-3 font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="whitespace-nowrap px-4 py-3 font-mono tabular-nums text-muted-foreground transition-colors duration-150 group-hover:text-foreground/70">
                       {formatDate(inv.issued_at)}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className="block max-w-35 truncate font-mono text-sm"
                         title={inv.invoice_number}
                       >
                         {inv.invoice_number}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <Badge variant="secondary">
                         {TYPE_LABELS[inv.type] ?? inv.type}
                       </Badge>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className="block max-w-50 truncate"
                         title={inv.client_name}
                       >
                         {inv.client_name}
                       </span>
-                    </td>
-                    <td className="hidden px-4 py-3 font-mono text-sm text-muted-foreground md:table-cell">
+                    </TableCell>
+                    <TableCell className="hidden px-4 py-3 font-mono text-sm text-muted-foreground md:table-cell">
                       {inv.client_nit}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-medium tabular-nums">
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-4 py-3 text-right font-mono font-medium tabular-nums transition-colors duration-150 group-hover:text-primary">
                       {inv.currency === 'GTQ' ? 'Q' : inv.currency}{' '}
                       {Number(inv.total_amount).toLocaleString('es-GT', {
                         minimumFractionDigits: 2,
                       })}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
-        )}
 
-        {invoices.length > 0 && (
-          <CardHeader className="border-t border-border pt-3 pb-3">
+          <div className="pt-3 pb-3">
             <p className="text-sm text-muted-foreground">
               Mostrando {invoices.length} factura
               {invoices.length !== 1 ? 's' : ''}
             </p>
-          </CardHeader>
-        )}
-      </Card>
+          </div>
+        </div>
+      )}
+
+      {invoices.length === 0 && (
+        <Card className="overflow-hidden">
+          <CardContent className="py-16 text-center">
+            <p className="text-sm text-muted-foreground">
+              No hay facturas en el rango seleccionado.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </section>
   );
 }

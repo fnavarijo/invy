@@ -159,7 +159,7 @@
   /* --- Sidebar --- */
   /* Sidebar uses a slightly deeper surface than the main background to create
      a natural left-rail separation without a heavy border. */
-  --sidebar: oklch(0.97 0.006 264);
+  --sidebar: oklch(from #ebece8 L C H);
   --sidebar-foreground: oklch(0.18 0.015 264);
   --sidebar-primary: oklch(0.46 0.175 264);
   --sidebar-primary-foreground: oklch(0.985 0.005 264);
