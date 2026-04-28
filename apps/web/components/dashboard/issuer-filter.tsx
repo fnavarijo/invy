@@ -65,7 +65,7 @@ function NitFilter({ paramKey, label, placeholder, icon: Icon, items }: NitFilte
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           className={cn(
-            'inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm transition-colors hover:bg-accent',
+            'inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm transition-colors hover:bg-primary/10 hover:text-primary hover:border-primary/30',
             activeItem ? 'rounded-r-none border-r-0 text-foreground' : 'text-muted-foreground',
           )}
         >
@@ -80,7 +80,7 @@ function NitFilter({ paramKey, label, placeholder, icon: Icon, items }: NitFilte
           <button
             onClick={() => select(null)}
             aria-label={`Quitar filtro de ${label.toLowerCase()}`}
-            className="inline-flex h-8 items-center rounded-r-md border border-border bg-background px-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="inline-flex h-8 items-center rounded-r-md border border-border bg-background px-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary hover:border-primary/30"
           >
             <X className="size-3.5" />
           </button>
@@ -111,8 +111,8 @@ function NitFilter({ paramKey, label, placeholder, icon: Icon, items }: NitFilte
                     key={item.nit}
                     onClick={() => select(item.nit)}
                     className={cn(
-                      'flex w-full flex-col gap-0.5 px-4 py-2.5 text-left transition-colors hover:bg-accent',
-                      activeNit === item.nit && 'bg-accent/60',
+                      'flex w-full flex-col gap-0.5 px-4 py-2.5 text-left transition-colors hover:bg-primary/10',
+                      activeNit === item.nit && 'bg-primary/10 text-primary',
                     )}
                   >
                     <span className="truncate text-sm font-medium">{item.name}</span>
