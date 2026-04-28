@@ -45,14 +45,14 @@ export async function KpiStrip({ range, issuerNit, clientNit }: KpiStripProps) {
       {kpis.map((kpi) => (
         <Card key={kpi.label}>
           <CardHeader className="flex flex-row items-start justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
               {kpi.label}
             </CardTitle>
             <kpi.icon className="size-4 shrink-0 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold tabular-nums">{kpi.value}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{kpi.sub}</p>
+            <p className="font-mono text-2xl font-bold tabular-nums">{kpi.value}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{kpi.sub}</p>
           </CardContent>
         </Card>
       ))}

@@ -1,5 +1,7 @@
 import { Separator } from '@/components/ui/separator';
 import { NavbarActions } from '@/components/common/navbar-actions';
+import { InvyLogo } from '@/components/common/invy-logo';
+import { NavLinks } from '@/components/common/nav-links';
 
 export function Navbar() {
   return (
@@ -10,25 +12,13 @@ export function Navbar() {
       >
         <a
           href="/"
-          className="text-base font-semibold tracking-tight text-foreground"
+          className="flex shrink-0 items-center gap-2 text-base font-semibold tracking-tight text-foreground"
         >
+          <InvyLogo size={28} />
           Invy
         </a>
-        <Separator orientation="vertical" className="h-4" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground">Procesamiento de Facturas</p>
-        <Separator orientation="vertical" className="h-4" aria-hidden="true" />
-        <a
-          href="/batches"
-          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Lotes
-        </a>
-        <a
-          href="/products"
-          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Productos
-        </a>
+        <Separator orientation="vertical" className="h-5" aria-hidden="true" />
+        <NavLinks />
         <NavbarActions />
       </nav>
     </header>

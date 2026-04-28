@@ -12,11 +12,11 @@ export default async function BatchDetailRoute({
     <div className="min-h-screen bg-background">
       <main className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <a
-          href="/"
+          href="/batches"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
-          Volver al inicio
+          Volver a Lotes
         </a>
 
         <BatchHeader paramsPromise={params} />

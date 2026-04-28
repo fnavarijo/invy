@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { Text } from '@/components/ui/text';
+import { UploadDialog } from '@/components/dashboard/upload-dialog';
 import { BatchList, BatchListSkeleton } from '@/components/pages/batches/batch-list';
 
 export default async function BatchesPage({
@@ -14,11 +15,14 @@ export default async function BatchesPage({
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
-        <div>
-          <Text size="h1">Lotes</Text>
-          <Text size="body" className="mt-1 text-muted-foreground">
-            Todos tus archivos subidos.
-          </Text>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <Text size="h1">Lotes</Text>
+            <Text size="body" className="mt-1 text-muted-foreground">
+              Todos tus archivos subidos.
+            </Text>
+          </div>
+          <UploadDialog />
         </div>
         <Suspense fallback={<BatchListSkeleton />}>
           <BatchList cursor={cursor} />

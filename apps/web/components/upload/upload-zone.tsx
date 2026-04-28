@@ -119,7 +119,7 @@ export function UploadZone() {
         <div className="rounded-xl border bg-card px-6 py-8 text-center space-y-4">
           <p className="text-sm font-medium text-foreground">Subiendo…</p>
           <Progress value={state.progress} className="w-full" />
-          <p className="text-xs text-muted-foreground">{state.progress}%</p>
+          <p className="text-sm text-muted-foreground">{state.progress}%</p>
         </div>
       </div>
     )
@@ -131,10 +131,10 @@ export function UploadZone() {
         <div className="rounded-xl border bg-card px-6 py-8 text-center space-y-4">
           <Loader2 className="mx-auto size-8 animate-spin text-primary" aria-hidden />
           <p className="text-sm font-medium text-foreground">Procesando…</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             ID de lote: <span className="font-mono">{state.batch.batch_id}</span>
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Intento {state.attempt + 1}
           </p>
         </div>
@@ -149,7 +149,7 @@ export function UploadZone() {
         <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30 px-6 py-8 text-center space-y-3">
           <CheckCircle2 className="mx-auto size-8 text-green-600 dark:text-green-400" aria-hidden />
           <p className="text-sm font-semibold text-foreground">Lote completado</p>
-          <dl className="text-xs text-muted-foreground space-y-1">
+          <dl className="text-sm text-muted-foreground space-y-1">
             <div>
               <dt className="inline">ID de lote: </dt>
               <dd className="inline font-mono">{batch.batch_id}</dd>
@@ -169,7 +169,7 @@ export function UploadZone() {
           </dl>
           <a
             href={`/batches/${batch.batch_id}`}
-            className="inline-block text-xs text-primary underline underline-offset-2 hover:no-underline"
+            className="inline-block text-sm text-primary underline underline-offset-2 hover:no-underline"
           >
             Ver detalles del lote
           </a>
@@ -190,7 +190,7 @@ export function UploadZone() {
           <p className="text-sm font-semibold text-foreground">Error al subir</p>
           <p className="text-sm text-destructive">{state.error}</p>
           {batch && (
-            <p className="text-xs text-muted-foreground font-mono">{batch.batch_id}</p>
+            <p className="text-sm text-muted-foreground font-mono">{batch.batch_id}</p>
           )}
         </div>
         <Button variant="outline" onClick={handleReset} className="w-full sm:w-auto">
@@ -213,7 +213,7 @@ export function UploadZone() {
           className="flex items-baseline gap-2 text-sm font-medium text-foreground"
         >
           Fuente
-          <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
+          <span className="text-sm font-normal text-muted-foreground">(opcional)</span>
         </label>
         <input
           id="batch-source"
@@ -256,7 +256,7 @@ export function UploadZone() {
             Arrastra tu archivo aquí, o{" "}
             <span className="text-primary underline underline-offset-2">explora</span>
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             Compatible con .xml y .zip — hasta {MAX_SIZE_MB} MB
           </p>
         </div>
@@ -295,7 +295,7 @@ export function UploadZone() {
                 <FileText className="size-4 shrink-0 text-muted-foreground" aria-hidden />
               )}
               <span className="min-w-0 flex-1 truncate font-medium">{file.name}</span>
-              <span className="shrink-0 text-xs text-muted-foreground">{humanSize(file.size)}</span>
+              <span className="shrink-0 text-sm text-muted-foreground">{humanSize(file.size)}</span>
               <button
                 type="button"
                 aria-label={`Eliminar ${file.name}`}

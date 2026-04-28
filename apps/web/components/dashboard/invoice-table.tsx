@@ -124,22 +124,22 @@ export async function InvoiceTable({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Fecha
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     No. Factura
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Tipo
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Cliente
                   </th>
-                  <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground md:table-cell">
+                  <th className="hidden px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground md:table-cell">
                     NIT Cliente
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-right text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Total
                   </th>
                 </tr>
@@ -150,19 +150,19 @@ export async function InvoiceTable({
                     key={inv.invoice_id}
                     className="transition-colors hover:bg-accent/50"
                   >
-                    <td className="whitespace-nowrap px-4 py-3 tabular-nums text-muted-foreground">
+                    <td className="whitespace-nowrap px-4 py-3 font-mono tabular-nums text-muted-foreground">
                       {formatDate(inv.issued_at)}
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className="block max-w-35 truncate font-mono text-xs"
+                        className="block max-w-35 truncate font-mono text-sm"
                         title={inv.invoice_number}
                       >
                         {inv.invoice_number}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary">
                         {TYPE_LABELS[inv.type] ?? inv.type}
                       </Badge>
                     </td>
@@ -174,10 +174,10 @@ export async function InvoiceTable({
                         {inv.client_name}
                       </span>
                     </td>
-                    <td className="hidden px-4 py-3 font-mono text-xs text-muted-foreground md:table-cell">
+                    <td className="hidden px-4 py-3 font-mono text-sm text-muted-foreground md:table-cell">
                       {inv.client_nit}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums">
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-medium tabular-nums">
                       {inv.currency === 'GTQ' ? 'Q' : inv.currency}{' '}
                       {Number(inv.total_amount).toLocaleString('es-GT', {
                         minimumFractionDigits: 2,
@@ -192,7 +192,7 @@ export async function InvoiceTable({
 
         {invoices.length > 0 && (
           <CardHeader className="border-t border-border pt-3 pb-3">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Mostrando {invoices.length} factura
               {invoices.length !== 1 ? 's' : ''}
             </p>
@@ -222,7 +222,7 @@ export function InvoiceTableSkeleton() {
                   (h) => (
                     <th
                       key={h}
-                      className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                      className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground"
                     >
                       {h}
                     </th>

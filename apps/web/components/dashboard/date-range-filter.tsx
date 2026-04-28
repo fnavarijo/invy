@@ -129,7 +129,7 @@ export function DateRangeFilter() {
               {showCustom && (
                 <div className="px-4 pb-3 pt-1 space-y-2">
                   <div>
-                    <label className="text-xs text-muted-foreground">Desde</label>
+                    <label className="text-sm text-muted-foreground">Desde</label>
                     <input
                       type="date"
                       value={customFrom}
@@ -138,7 +138,7 @@ export function DateRangeFilter() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground">Hasta</label>
+                    <label className="text-sm text-muted-foreground">Hasta</label>
                     <input
                       type="date"
                       value={customTo}

@@ -60,7 +60,7 @@ export function BatchRow({ batch }: { batch: BatchListItem }) {
         <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
           {batch.source ?? batch.file_name}
         </span>
-        <Badge variant="outline" style={getStatusStyle(batch.status)} className="shrink-0 text-xs">
+        <Badge variant="outline" style={getStatusStyle(batch.status)} className="shrink-0">
           {STATUS_LABELS[batch.status]}
         </Badge>
         <span className="hidden sm:block shrink-0 w-16 text-right text-sm text-muted-foreground tabular-nums">

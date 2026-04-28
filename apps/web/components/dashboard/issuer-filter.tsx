@@ -116,7 +116,7 @@ function NitFilter({ paramKey, label, placeholder, icon: Icon, items }: NitFilte
                     )}
                   >
                     <span className="truncate text-sm font-medium">{item.name}</span>
-                    <span className="font-mono text-xs text-muted-foreground">{item.nit}</span>
+                    <span className="font-mono text-sm text-muted-foreground">{item.nit}</span>
                   </button>
                 ))
               )}

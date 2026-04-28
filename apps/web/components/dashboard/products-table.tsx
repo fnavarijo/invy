@@ -53,16 +53,16 @@ export async function ProductsTable({ range, currency, issuerNit, clientNit }: P
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Producto
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Tipo
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-right text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Cantidad
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-right text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Total
                   </th>
                 </tr>
@@ -76,14 +76,14 @@ export async function ProductsTable({ range, currency, issuerNit, clientNit }: P
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary">
                         {p.type}
                       </Badge>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-muted-foreground">
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono tabular-nums text-muted-foreground">
                       {Number(p.total_quantity).toLocaleString('es-GT')}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums">
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-medium tabular-nums">
                       {formatCurrency(p.product_total, currency)}
                     </td>
                   </tr>
@@ -95,7 +95,7 @@ export async function ProductsTable({ range, currency, issuerNit, clientNit }: P
 
         {products.length > 0 && (
           <CardHeader className="border-t border-border pt-3 pb-3">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {products.length} producto{products.length !== 1 ? 's' : ''}
             </p>
           </CardHeader>
@@ -122,7 +122,7 @@ export function ProductsTableSkeleton() {
                 {['Producto', 'Tipo', 'Cantidad', 'Total'].map((h) => (
                   <th
                     key={h}
-                    className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                    className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground"
                   >
                     {h}
                   </th>
