@@ -14,7 +14,7 @@ export function Navbar() {
           href="/"
           className="flex shrink-0 items-center gap-2 text-base font-semibold tracking-tight text-foreground"
         >
-          <InvyLogo size={28} />
+          <InvyLogo size={36} />
           Invy
         </a>
         <Separator orientation="vertical" className="h-5" aria-hidden="true" />

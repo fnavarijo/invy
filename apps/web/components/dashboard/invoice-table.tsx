@@ -42,15 +42,16 @@ function LimitSelector({
   }
 
   return (
-    <div className="inline-flex overflow-hidden rounded-md border border-border text-sm">
+    <div className="inline-flex divide-x divide-border overflow-hidden rounded-md border border-border text-sm">
       {LIMIT_OPTIONS.map((n) => (
         <a
           key={n}
           href={buildUrl(n)}
+          aria-current={n === current ? 'page' : undefined}
           className={
             n === current
-              ? 'bg-primary px-3 py-1 text-primary-foreground'
-              : 'bg-background px-3 py-1 text-muted-foreground hover:bg-accent transition-colors'
+              ? 'bg-primary/10 px-3 py-1.5 font-medium text-primary transition-colors'
+              : 'bg-background px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent/10 hover:text-foreground'
           }
         >
           {n}
@@ -103,9 +104,9 @@ export async function InvoiceTable({
           <a
             href={buildExportUrl(range)}
             download
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
           >
-            <Download className="size-3.5" />
+            <Download className="size-4 shrink-0" />
             Exportar
           </a>
           <LimitSelector current={limit} searchParams={searchParams} />

@@ -51,10 +51,10 @@ export function BatchRow({ batch }: { batch: BatchListItem }) {
   }
 
   return (
-    <li className="flex items-center border-b last:border-b-0">
+    <li className="flex items-center border-b transition-colors last:border-b-0 hover:bg-primary/10">
       <a
         href={`/batches/${batch.batch_id}`}
-        className="group flex flex-1 items-center gap-4 px-4 py-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        className="group flex flex-1 items-center gap-4 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       >
         <FileIcon fileType={batch.file_type} />
         <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">

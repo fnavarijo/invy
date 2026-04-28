@@ -1,4 +1,4 @@
-export function InvyLogo({ size = 24 }: { size?: number }) {
+export function InvyLogo({ size = 36 }: { size?: number }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -9,7 +9,7 @@ export function InvyLogo({ size = 24 }: { size?: number }) {
     >
       <g
         fill="none"
-        strokeWidth="4.5"
+        strokeWidth="8"
         strokeLinejoin="round"
         strokeLinecap="round"
         className="stroke-[#1f2937] dark:stroke-[#e6e8eb]"
