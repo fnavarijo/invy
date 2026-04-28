@@ -3,6 +3,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --text-*: initial;
+  --text-3xl: 3rem; /* 48px */
+  --text-3xl--line-height: 3.125rem; /* 50px */
+  --text-2xl: 2rem; /* 32px */
+  --text-2xl--line-height: 2.25rem; /* 36px */
+  --text-xl: 1.375rem; /* 22px */
+  --text-xl--line-height: 1.625rem; /* 26px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-lg--line-height: 1.375rem; /* 22px */
+  --text-base: 1rem; /* 16px */
+  --text-base--line-height: 1.5rem; /* 24px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-sm--line-height: 1.125rem; /* 18px */
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -64,41 +80,41 @@
 
   /* --- Surfaces --- */
   /* Pure white canvas. Clean, uncluttered reading environment for dense tables. */
-  --background: oklch(1 0 0);
+  --background: oklch(from #f5f5f3 L C H);
   /* Near-black with a faint cool tint — prevents pure-black harshness on white. */
-  --foreground: oklch(0.13 0.012 264);
+  --foreground: oklch(from #1f2937 L C H);
 
   /* Cards sit on the background. A barely-there warm-cool offset lifts them. */
-  --card: oklch(0.99 0.003 264);
-  --card-foreground: oklch(0.13 0.012 264);
+  --card: oklch(from #ffffff L C H);
+  --card-foreground: oklch(from #1f2937 L C H);
 
   /* Popovers use the same surface as cards. */
-  --popover: oklch(0.99 0.003 264);
-  --popover-foreground: oklch(0.13 0.012 264);
+  --popover: oklch(from #ffffff L C H);
+  --popover-foreground: oklch(from #1f2937 L C H);
 
   /* --- Brand Primary: Slate-Indigo --- */
   /* Mid-range indigo — authoritative without being aggressive.
      Passes 4.5:1 against white primary-foreground. */
-  --primary: oklch(0.46 0.175 264);
-  --primary-foreground: oklch(0.985 0.005 264);
+  --primary: oklch(from #0a7a52 L C H);
+  --primary-foreground: oklch(from #ffffff L C H);
 
   /* --- Secondary: cool-tinted light gray --- */
   /* Used for secondary buttons, tags, and low-priority UI. */
-  --secondary: oklch(0.95 0.008 264);
-  --secondary-foreground: oklch(0.25 0.025 264);
+  --secondary: oklch(from #374151 L C H);
+  --secondary-foreground: oklch(from #ffffff L C H);
 
   /* --- Muted: subtle fill for disabled states, zebra rows, empty states --- */
-  --muted: oklch(0.96 0.005 264);
-  --muted-foreground: oklch(0.42 0.018 264); /* darkened from 0.5 — 0.5 only yields ~3.6:1 on muted bg */
+  --muted: oklch(from #ebece8 L C H);
+  --muted-foreground: oklch(from #374151 L C H);
 
   /* --- Accent: used for hover highlights and selected rows --- */
   /* Slightly deeper than muted to register without competing with primary. */
-  --accent: oklch(0.93 0.015 264);
-  --accent-foreground: oklch(0.25 0.025 264);
+  --accent: oklch(from #0f9d6a L C H);
+  --accent-foreground: oklch(from #ffffff L C H);
 
   /* --- Semantic: destructive --- */
   /* SAT validation errors, batch failures. Vivid enough to alert, not alarming. */
-  --destructive: oklch(0.56 0.215 27);
+  --destructive: oklch(from #c1455a L C H);
 
   /* --- Chrome --- */
   /* Borders are cool-gray — consistent with the indigo family at low chroma. */
@@ -158,14 +174,22 @@
   --clerk-color-danger: var(--color-destructive);
   --clerk-color-success: #22c543;
   --clerk-color-warning: #f36b16;
-  --clerk-color-neutral: var(--color-muted-foreground); /* was foreground — too high contrast for dividers/labels */
+  --clerk-color-neutral: var(
+    --color-muted-foreground
+  ); /* was foreground — too high contrast for dividers/labels */
   --clerk-color-foreground: var(--color-foreground);
   --clerk-color-muted-foreground: var(--color-muted-foreground);
-  --clerk-color-background: var(--color-card); /* card surface token — white in light, elevated in dark */
-  --clerk-color-input: var(--color-muted); /* was --color-input (border token) — Clerk uses this as field bg */
+  --clerk-color-background: var(
+    --color-card
+  ); /* card surface token — white in light, elevated in dark */
+  --clerk-color-input: var(
+    --color-muted
+  ); /* was --color-input (border token) — Clerk uses this as field bg */
   --clerk-color-input-foreground: var(--color-foreground);
   --clerk-color-ring: var(--color-ring);
-  --clerk-color-shimmer: var(--color-background); /* pure white (1.0) vs near-white card (0.99) — subtle visible sweep */
+  --clerk-color-shimmer: var(
+    --color-background
+  ); /* pure white (1.0) vs near-white card (0.99) — subtle visible sweep */
   --clerk-color-modal-backdrop: #000000;
   --clerk-border-radius: var(--radius-md);
   --clerk-spacing: 1rem;
@@ -175,41 +199,43 @@
 .dark {
   /* --- Surfaces --- */
   /* Deep navy-charcoal — not pure black, which creates halation on OLED. */
-  --background: oklch(0.14 0.018 264);
-  --foreground: oklch(0.94 0.008 264);
+  --background: oklch(from #0f1620 L C H);
+  --foreground: oklch(from #e6e8eb L C H);
 
   /* Cards float 2 lightness steps above background. */
-  --card: oklch(0.19 0.02 264);
-  --card-foreground: oklch(0.94 0.008 264);
+  --card: oklch(from #1a232f L C H);
+  --card-foreground: oklch(from #e6e8eb L C H);
 
-  --popover: oklch(0.19 0.02 264);
-  --popover-foreground: oklch(0.94 0.008 264);
+  --popover: oklch(from #1a232f L C H);
+  --popover-foreground: oklch(from #e6e8eb L C H);
 
   /* --- Brand Primary (dark) --- */
   /* Lighter than the light-mode primary so it remains vivid against dark surfaces.
      Still passes 4.5:1 against the dark primary-foreground. */
-  --primary: oklch(0.62 0.175 264);
-  --primary-foreground: oklch(0.1 0.02 264);
+  --primary: oklch(from #22c489 L C H);
+  --primary-foreground: oklch(from #082b1f L C H);
 
   /* --- Secondary --- */
-  --secondary: oklch(0.24 0.022 264);
-  --secondary-foreground: oklch(0.88 0.01 264);
+  --secondary: oklch(from #374151 L C H);
+  --secondary-foreground: oklch(from #e6e8eb L C H);
 
   /* --- Muted --- */
-  --muted: oklch(0.23 0.018 264);
-  --muted-foreground: oklch(0.65 0.03 264); /* raised from 0.6 — fixes 4.42:1 WCAG fail on muted bg */
+  --muted: oklch(from #0a0f17 L C H);
+  --muted-foreground: oklch(from #cbd1d9 L C H);
 
   /* --- Accent --- */
-  --accent: oklch(0.27 0.026 264);
+  --accent: oklch(from #22c489 L C H);
   --accent-foreground: oklch(0.9 0.01 264);
 
   /* --- Semantic: destructive --- */
   /* Brightened for dark-mode legibility — softer red keeps the UI from feeling alarming. */
-  --destructive: oklch(0.68 0.19 22);
+  --destructive: oklch(from #c1455a L C H);
 
   /* --- Chrome --- */
   /* Borders use alpha so they adapt gracefully to any underlying surface. */
-  --border: oklch(1 0 0 / 18%); /* raised from 12% — 12% was too faint to delineate table rows */
+  --border: oklch(
+    1 0 0 / 18%
+  ); /* raised from 12% — 12% was too faint to delineate table rows */
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.62 0.175 264);
 
@@ -253,14 +279,22 @@
   --clerk-color-danger: var(--color-destructive);
   --clerk-color-success: #22c543;
   --clerk-color-warning: #f36b16;
-  --clerk-color-neutral: var(--color-muted-foreground); /* was foreground — too high contrast for dividers/labels */
+  --clerk-color-neutral: var(
+    --color-muted-foreground
+  ); /* was foreground — too high contrast for dividers/labels */
   --clerk-color-foreground: var(--color-foreground);
   --clerk-color-muted-foreground: var(--color-muted-foreground);
-  --clerk-color-background: var(--color-card); /* card surface, not page bg — dark bg made card invisible */
-  --clerk-color-input: var(--color-secondary); /* was --color-input (border token) — Clerk uses this as field bg */
+  --clerk-color-background: var(
+    --color-card
+  ); /* card surface, not page bg — dark bg made card invisible */
+  --clerk-color-input: var(
+    --color-secondary
+  ); /* was --color-input (border token) — Clerk uses this as field bg */
   --clerk-color-input-foreground: var(--color-foreground);
   --clerk-color-ring: var(--color-ring);
-  --clerk-color-shimmer: var(--color-accent); /* shimmer sweeps over card, needs to contrast against it */
+  --clerk-color-shimmer: var(
+    --color-accent
+  ); /* shimmer sweeps over card, needs to contrast against it */
   --clerk-color-modal-backdrop: #000000;
   --clerk-border-radius: var(--radius-md);
   --clerk-spacing: 1rem;
@@ -272,6 +306,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }
