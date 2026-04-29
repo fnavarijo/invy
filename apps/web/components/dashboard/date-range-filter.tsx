@@ -79,7 +79,6 @@ export function DateRangeFilter() {
     <div className="relative">
       <Button
         variant="outline"
-        size="sm"
         className="gap-2"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}

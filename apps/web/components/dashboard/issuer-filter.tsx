@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { type LucideIcon, Building2, User, ChevronDown, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export interface NitItem {
@@ -61,11 +62,12 @@ function NitFilter({ paramKey, label, placeholder, icon: Icon, items }: NitFilte
   return (
     <div className="relative">
       <div className="flex items-center">
-        <button
+        <Button
+          variant="outline"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           className={cn(
-            'inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm transition-colors hover:bg-primary/10 hover:text-primary hover:border-primary/30',
+            'gap-1.5',
             activeItem ? 'rounded-r-none border-r-0 text-foreground' : 'text-muted-foreground',
           )}
         >
@@ -74,16 +76,18 @@ function NitFilter({ paramKey, label, placeholder, icon: Icon, items }: NitFilte
             {activeItem ? activeItem.name : label}
           </span>
           <ChevronDown className={cn('size-3 shrink-0 transition-transform', open && 'rotate-180')} />
-        </button>
+        </Button>
 
         {activeItem && (
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => select(null)}
             aria-label={`Quitar filtro de ${label.toLowerCase()}`}
-            className="inline-flex h-8 items-center rounded-r-md border border-border bg-background px-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+            className="rounded-l-none"
           >
             <X className="size-3.5" />
-          </button>
+          </Button>
         )}
       </div>
 

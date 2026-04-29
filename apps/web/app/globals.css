@@ -67,6 +67,13 @@
   --color-status-failed-text: var(--status-failed-text);
 }
 
+@layer base {
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
 /* =============================================================================
    INVY — Design System Color Palette
    Brand accent: Slate-Indigo (hue ~255–265)

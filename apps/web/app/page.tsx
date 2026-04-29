@@ -7,6 +7,10 @@ import { UploadDialog } from '@/components/dashboard/upload-dialog';
 import { KpiStrip, KpiStripSkeleton } from '@/components/dashboard/kpi-strip';
 import { GlobalAnalytics, GlobalAnalyticsSkeleton } from '@/components/dashboard/global-analytics';
 import { InvoiceTable, InvoiceTableSkeleton } from '@/components/dashboard/invoice-table';
+import {
+  INVOICE_LIMIT_OPTIONS,
+  type InvoiceLimitOption,
+} from '@/components/dashboard/invoice-limit-options';
 import { parseDateRangeParams } from '@/lib/date-range';
 
 export default async function DashboardPage({
@@ -18,9 +22,10 @@ export default async function DashboardPage({
   const range = parseDateRangeParams(params['issued_from'], params['issued_to']);
 
   const rawLimit = Array.isArray(params['limit']) ? params['limit'][0] : params['limit'];
-  const limitOptions = [25, 50, 100] as const;
   const parsedLimit = rawLimit ? parseInt(rawLimit, 10) : 25;
-  const limit = (limitOptions.includes(parsedLimit as 25 | 50 | 100) ? parsedLimit : 25) as 25 | 50 | 100;
+  const limit = (INVOICE_LIMIT_OPTIONS.includes(parsedLimit as InvoiceLimitOption)
+    ? parsedLimit
+    : 25) as InvoiceLimitOption;
 
   const rawIssuerNit = params['issuer_nit'];
   const issuerNit = Array.isArray(rawIssuerNit) ? rawIssuerNit[0] : rawIssuerNit;

@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
@@ -14,9 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table';
-
-const LIMIT_OPTIONS = [25, 50, 100] as const;
-type LimitOption = (typeof LIMIT_OPTIONS)[number];
+import { InvoiceLimitSelector } from './invoice-limit-selector';
+import { type InvoiceLimitOption } from './invoice-limit-options';
 
 const TYPE_LABELS: Record<string, string> = {
   FACT: 'Factura',
@@ -28,45 +28,8 @@ const TYPE_LABELS: Record<string, string> = {
 
 interface InvoiceTableProps {
   range: DateRange;
-  limit: LimitOption;
+  limit: InvoiceLimitOption;
   searchParams: Record<string, string | string[] | undefined>;
-}
-
-function LimitSelector({
-  current,
-  searchParams,
-}: {
-  current: LimitOption;
-  searchParams: Record<string, string | string[] | undefined>;
-}) {
-  function buildUrl(limit: number) {
-    const params = new URLSearchParams();
-    const from = searchParams['issued_from'];
-    const to = searchParams['issued_to'];
-    if (from) params.set('issued_from', Array.isArray(from) ? from[0]! : from);
-    if (to) params.set('issued_to', Array.isArray(to) ? to[0]! : to);
-    params.set('limit', String(limit));
-    return `/?${params.toString()}`;
-  }
-
-  return (
-    <div className="inline-flex divide-x divide-border overflow-hidden rounded-md border border-border text-sm">
-      {LIMIT_OPTIONS.map((n) => (
-        <a
-          key={n}
-          href={buildUrl(n)}
-          aria-current={n === current ? 'page' : undefined}
-          className={
-            n === current
-              ? 'bg-primary/10 px-3 py-1.5 font-medium text-primary transition-colors'
-              : 'bg-background px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent/10 hover:text-foreground'
-          }
-        >
-          {n}
-        </a>
-      ))}
-    </div>
-  );
 }
 
 function buildExportUrl(range: DateRange) {
@@ -119,15 +82,13 @@ export async function InvoiceTable({
           </Text>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <a
-            href={buildExportUrl(range)}
-            download
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-primary"
-          >
-            <Download className="size-4 shrink-0" />
-            Exportar
-          </a>
-          <LimitSelector current={limit} searchParams={searchParams} />
+          <Button variant="outline" asChild>
+            <a href={buildExportUrl(range)} download>
+              <Download />
+              Exportar
+            </a>
+          </Button>
+          <InvoiceLimitSelector current={limit} />
         </div>
       </div>
 

@@ -17,7 +17,7 @@ export function UploadDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)}>
+      <Button variant="outline" className="gap-2" onClick={() => setOpen(true)}>
         <UploadCloud className="size-4" />
         Subir facturas
       </Button>
