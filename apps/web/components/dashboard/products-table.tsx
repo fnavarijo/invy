@@ -88,7 +88,9 @@ export async function ProductsTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary">{p.type}</Badge>
+                  <Badge variant="secondary">
+                    {p.type === 'S' ? 'Servicio' : 'Bien'}
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-right font-mono tabular-nums">
                   {Number(p.total_quantity).toLocaleString('es-GT')}
