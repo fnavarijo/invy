@@ -1,7 +1,16 @@
 import { auth } from '@clerk/nextjs/server';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { getInvoiceProducts } from '@/lib/api/invoices';
 import type { DateRange } from '@/lib/date-range';
 
@@ -17,12 +26,23 @@ function formatCurrency(value: string, currency: string): string {
   return `${prefix}${Number(value).toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
 }
 
-export async function ProductsTable({ range, currency, issuerNit, clientNit }: ProductsTableProps) {
+export async function ProductsTable({
+  range,
+  currency,
+  issuerNit,
+  clientNit,
+}: ProductsTableProps) {
   const { getToken } = await auth();
   const authToken = await getToken();
 
   const data = await getInvoiceProducts(
-    { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, currency, issuerNit, clientNit },
+    {
+      issuedFrom: range.issuedFrom,
+      issuedTo: range.issuedTo,
+      currency,
+      issuerNit,
+      clientNit,
+    },
     { authToken },
   );
 
@@ -41,66 +61,53 @@ export async function ProductsTable({ range, currency, issuerNit, clientNit }: P
         </div>
       </div>
 
-      <Card className="overflow-hidden">
-        {products.length === 0 ? (
+      {products.length === 0 ? (
+        <Card className="overflow-hidden">
           <CardContent className="py-16 text-center">
             <p className="text-sm text-muted-foreground">
               No hay productos en el rango seleccionado.
             </p>
           </CardContent>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/40">
-                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    Producto
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    Tipo
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    Cantidad
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    Total
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {products.map((p) => (
-                  <tr key={`${p.name}-${p.type}`} className="transition-colors hover:bg-accent/50">
-                    <td className="px-4 py-3">
-                      <span className="block max-w-60 truncate" title={p.name}>
-                        {p.name}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant="secondary">
-                        {p.type}
-                      </Badge>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono tabular-nums text-muted-foreground">
-                      {Number(p.total_quantity).toLocaleString('es-GT')}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-medium tabular-nums">
-                      {formatCurrency(p.product_total, currency)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {products.length > 0 && (
-          <CardHeader className="border-t border-border pt-3 pb-3">
-            <p className="text-sm text-muted-foreground">
-              {products.length} producto{products.length !== 1 ? 's' : ''}
-            </p>
-          </CardHeader>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Producto</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead className="text-right">Cantidad</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {products.map((p) => (
+              <TableRow key={`${p.name}-${p.type}`}>
+                <TableCell>
+                  <span className="block max-w-60 truncate" title={p.name}>
+                    {p.name}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">{p.type}</Badge>
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums">
+                  {Number(p.total_quantity).toLocaleString('es-GT')}
+                </TableCell>
+                <TableCell className="text-right font-mono font-medium tabular-nums">
+                  {formatCurrency(p.product_total, currency)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={4} className="text-muted-foreground">
+                {products.length} producto{products.length !== 1 ? 's' : ''}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      )}
     </section>
   );
 }
@@ -115,40 +122,38 @@ export function ProductsTableSkeleton() {
         </div>
       </div>
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/40">
-                {['Producto', 'Tipo', 'Cantidad', 'Total'].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-3 text-left text-sm font-medium uppercase tracking-wide text-muted-foreground"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <tr key={i}>
-                  <td className="px-4 py-3">
-                    <div className="h-4 w-40 animate-pulse rounded bg-muted" />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="h-5 w-16 animate-pulse rounded-full bg-muted" />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="ml-auto h-4 w-12 animate-pulse rounded bg-muted" />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="ml-auto h-4 w-20 animate-pulse rounded bg-muted" />
-                  </td>
-                </tr>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {['Producto', 'Tipo', 'Cantidad', 'Total'].map((h) => (
+                <TableHead
+                  key={h}
+                  className="px-4 uppercase tracking-wide text-muted-foreground"
+                >
+                  {h}
+                </TableHead>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <TableRow key={i}>
+                <TableCell className="px-4 py-3">
+                  <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <div className="h-5 w-16 animate-pulse rounded-full bg-muted" />
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right">
+                  <div className="ml-auto h-4 w-12 animate-pulse rounded bg-muted" />
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right">
+                  <div className="ml-auto h-4 w-20 animate-pulse rounded bg-muted" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </Card>
     </section>
   );

@@ -11,6 +11,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -93,83 +94,65 @@ export async function InvoiceTable({
       </div>
 
       {invoices.length > 0 && (
-        <div>
-          <div className="overflow-x-auto bg-card rounded-xl border border-border">
-            <Table>
-              <TableHeader className="bg-sidebar">
-                <TableRow>
-                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    Fecha
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    No. Factura
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    Tipo
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    Cliente
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-left font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    NIT Cliente
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-right font-mono text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                    Total
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-border ">
-                {invoices.map((inv) => (
-                  <TableRow
-                    key={inv.invoice_id}
-                    className="group transition-colors duration-150 hover:bg-primary/10 even:bg-muted/30"
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Fecha</TableHead>
+              <TableHead>No. Factura</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>NIT Cliente</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {invoices.map((inv) => (
+              <TableRow key={inv.invoice_id} className="group/row">
+                <TableCell className="font-mono tabular-nums">
+                  {formatDate(inv.issued_at)}
+                </TableCell>
+                <TableCell>
+                  <span
+                    className="block max-w-35 truncate font-mono"
+                    title={inv.invoice_number}
                   >
-                    <TableCell className="whitespace-nowrap px-4 py-3 font-mono tabular-nums text-muted-foreground transition-colors duration-150 group-hover:text-foreground/70">
-                      {formatDate(inv.issued_at)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <span
-                        className="block max-w-35 truncate font-mono text-sm"
-                        title={inv.invoice_number}
-                      >
-                        {inv.invoice_number}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <Badge variant="secondary">
-                        {TYPE_LABELS[inv.type] ?? inv.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <span
-                        className="block max-w-50 truncate"
-                        title={inv.client_name}
-                      >
-                        {inv.client_name}
-                      </span>
-                    </TableCell>
-                    <TableCell className="hidden px-4 py-3 font-mono text-sm text-muted-foreground md:table-cell">
-                      {inv.client_nit}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap px-4 py-3 text-right font-mono font-medium tabular-nums transition-colors duration-150 group-hover:text-primary">
-                      {inv.currency === 'GTQ' ? 'Q' : inv.currency}{' '}
-                      {Number(inv.total_amount).toLocaleString('es-GT', {
-                        minimumFractionDigits: 2,
-                      })}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          <div className="pt-3 pb-3">
-            <p className="text-sm text-muted-foreground">
-              Mostrando {invoices.length} factura
-              {invoices.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-        </div>
+                    {inv.invoice_number}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">
+                    {TYPE_LABELS[inv.type] ?? inv.type}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <span
+                    className="block max-w-50 truncate"
+                    title={inv.client_name}
+                  >
+                    {inv.client_name}
+                  </span>
+                </TableCell>
+                <TableCell className="hidden font-mono md:table-cell">
+                  {inv.client_nit}
+                </TableCell>
+                <TableCell className="text-right font-mono font-medium tabular-nums transition-colors duration-150 group-hover/row:text-primary">
+                  {new Intl.NumberFormat('es-GT', {
+                    style: 'currency',
+                    currency: 'GTQ',
+                  }).format(Number(inv.total_amount))}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={6} className="text-muted-foreground">
+                Mostrando {invoices.length} factura
+                {invoices.length !== 1 ? 's' : ''}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
       )}
 
       {invoices.length === 0 && (
