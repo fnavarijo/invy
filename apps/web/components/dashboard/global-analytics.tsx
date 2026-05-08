@@ -25,7 +25,7 @@ export async function GlobalAnalytics({ range, issuerNit, clientNit }: GlobalAna
   const { getToken } = await auth();
   const authToken = await getToken();
 
-  const params = { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, issuerNit, clientNit };
+  const params = { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, issuerNit, clientNit, limit: 50 };
 
   const [analyticsQuantity, analyticsRevenue, analyticsBuyers] = await Promise.all([
     getGlobalTopProductsByQuantity(params, { authToken }),
