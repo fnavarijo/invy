@@ -61,7 +61,7 @@ export async function InvoiceTable({
             Facturas
           </Text>
           <Text size="body" className="text-muted-foreground">
-            Las últimas {limit} facturas del periodo ordenadas por fecha.
+            Facturas del periodo ordenadas por fecha.
           </Text>
         </div>
         <div className="flex flex-wrap items-center gap-2">
