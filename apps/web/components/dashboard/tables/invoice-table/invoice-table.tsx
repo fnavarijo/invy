@@ -2,30 +2,12 @@ import { auth } from '@clerk/nextjs/server';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
 import { listInvoices } from '@/lib/api/invoices';
-import { formatDate } from '@/lib/date-range';
 import type { DateRange } from '@/lib/date-range';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../ui/table';
-import { InvoiceLimitSelector } from './invoice-limit-selector';
-import { type InvoiceLimitOption } from './invoice-limit-options';
-
-const TYPE_LABELS: Record<string, string> = {
-  FACT: 'Factura',
-  NCRE: 'N. Crédito',
-  NDEB: 'N. Débito',
-  RECI: 'Recibo',
-  NABN: 'Abono',
-};
+import { InvoiceLimitSelector } from '../../invoice-limit-selector';
+import { type InvoiceLimitOption } from '../../invoice-limit-options';
+import { InvoiceDataTable } from './invoice-data-table';
 
 interface InvoiceTableProps {
   range: DateRange;
@@ -93,67 +75,7 @@ export async function InvoiceTable({
         </div>
       </div>
 
-      {invoices.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Fecha</TableHead>
-              <TableHead>No. Factura</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>NIT Cliente</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invoices.map((inv) => (
-              <TableRow key={inv.invoice_id} className="group/row">
-                <TableCell className="font-mono tabular-nums">
-                  {formatDate(inv.issued_at)}
-                </TableCell>
-                <TableCell>
-                  <span
-                    className="block max-w-35 truncate font-mono"
-                    title={inv.invoice_number}
-                  >
-                    {inv.invoice_number}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {TYPE_LABELS[inv.type] ?? inv.type}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <span
-                    className="block max-w-50 truncate"
-                    title={inv.client_name}
-                  >
-                    {inv.client_name}
-                  </span>
-                </TableCell>
-                <TableCell className="hidden font-mono md:table-cell">
-                  {inv.client_nit}
-                </TableCell>
-                <TableCell className="text-right font-mono font-medium tabular-nums transition-colors duration-150 group-hover/row:text-primary">
-                  {new Intl.NumberFormat('es-GT', {
-                    style: 'currency',
-                    currency: 'GTQ',
-                  }).format(Number(inv.total_amount))}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={6} className="text-muted-foreground">
-                Mostrando {invoices.length} factura
-                {invoices.length !== 1 ? 's' : ''}
-              </TableCell>
-            </TableRow>
-          </TableFooter>
-        </Table>
-      )}
+      {invoices.length > 0 && <InvoiceDataTable data={invoices} />}
 
       {invoices.length === 0 && (
         <Card className="overflow-hidden">
