@@ -98,3 +98,34 @@ export async function getTopBuyers(
 
   return handleResponse<TopBuyersResponse>(res);
 }
+
+export type TopIssuerItem = {
+  issuer_name: string;
+  issuer_nit: string;
+  total_received: string;
+  invoice_count: number;
+};
+
+export type TopIssuersResponse = {
+  batch_id: string;
+  data: TopIssuerItem[];
+};
+
+export async function getTopIssuers(
+  batchId: string,
+  limit?: number,
+  config?: RequestConfig,
+): Promise<TopIssuersResponse> {
+  const url = `${API_BASE_URL}/v1/batches/${batchId}/analytics/top-issuers${limit !== undefined ? `?limit=${limit}` : ''}`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildHeaders({ authToken: config?.authToken }),
+    },
+    signal: config?.signal,
+  });
+
+  return handleResponse<TopIssuersResponse>(res);
+}

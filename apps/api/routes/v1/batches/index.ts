@@ -15,6 +15,7 @@ import type {
   TopProductByQuantity,
   TopProductByRevenue,
   TopBuyer,
+  TopIssuer,
   AnalyticsResponse,
 } from '../../../types/index.ts';
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts';
@@ -827,6 +828,57 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           client_name: r.client_name,
           client_nit: r.client_nit,
           total_spent: Number(r.total_spent).toFixed(2),
+          invoice_count: r.invoice_count,
+        })),
+      };
+
+      return reply.send(response);
+    },
+  );
+
+  // ── GET /v1/batches/:batch_id/analytics/top-issuers ───────────────────────────
+  fastify.get<{ Params: { batch_id: string }; Querystring: AnalyticsQuery }>(
+    '/:batch_id/analytics/top-issuers',
+    async (
+      request: FastifyRequest<{
+        Params: { batch_id: string };
+        Querystring: AnalyticsQuery;
+      }>,
+      reply: FastifyReply,
+    ) => {
+      const { batch_id } = request.params;
+      const limit = Math.min(
+        parseInt(request.query.limit ?? '10', 10) || 10,
+        50,
+      );
+
+      const { userId } = getAuth(request);
+      if (!(await assertBatchOwner(fastify.db, batch_id, userId!))) {
+        return reply
+          .status(404)
+          .send(buildError('NOT_FOUND', 'Batch not found.'));
+      }
+
+      const rows = await fastify.db
+        .select({
+          issuer_name: invoices.issuer_name,
+          issuer_nit: invoices.issuer_nit,
+          total_received: sql<string>`SUM(${invoices.total_amount})::text`,
+          invoice_count: sql<number>`COUNT(*)::int`,
+        })
+        .from(invoices)
+        .innerJoin(batchInvoices, eq(invoices.invoice_id, batchInvoices.invoice_id))
+        .where(eq(batchInvoices.batch_id, batch_id))
+        .groupBy(invoices.issuer_name, invoices.issuer_nit)
+        .orderBy(sql`SUM(${invoices.total_amount}) DESC`)
+        .limit(limit);
+
+      const response: AnalyticsResponse<TopIssuer> = {
+        batch_id,
+        data: rows.map((r) => ({
+          issuer_name: r.issuer_name,
+          issuer_nit: r.issuer_nit,
+          total_received: Number(r.total_received).toFixed(2),
           invoice_count: r.invoice_count,
         })),
       };

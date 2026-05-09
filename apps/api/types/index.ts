@@ -93,6 +93,13 @@ export interface TopBuyer {
   invoice_count: number
 }
 
+export interface TopIssuer {
+  issuer_name: string
+  issuer_nit: string
+  total_received: string
+  invoice_count: number
+}
+
 export interface AnalyticsResponse<T> {
   batch_id: string
   data: T[]

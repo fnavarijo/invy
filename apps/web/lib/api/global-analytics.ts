@@ -111,3 +111,28 @@ export async function getGlobalTopBuyers(
   });
   return handleResponse<GlobalTopBuyersResponse>(res);
 }
+
+export type GlobalTopIssuersResponse = {
+  issued_from: string;
+  issued_to: string;
+  data: Array<{
+    issuer_name: string;
+    issuer_nit: string;
+    total_received: string;
+    invoice_count: number;
+  }>;
+};
+
+export async function getGlobalTopIssuers(
+  params: GlobalAnalyticsParams,
+  config?: RequestConfig,
+): Promise<GlobalTopIssuersResponse> {
+  const res = await fetch(buildUrl('top-issuers', params), {
+    headers: {
+      'Content-Type': 'application/json',
+      ...buildHeaders({ authToken: config?.authToken }),
+    },
+    signal: config?.signal,
+  });
+  return handleResponse<GlobalTopIssuersResponse>(res);
+}

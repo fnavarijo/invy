@@ -4,13 +4,16 @@ import { auth } from '@clerk/nextjs/server';
 import { TopProductsQuantity } from '@/components/charts/top-products-quantity';
 import { TopProductsRevenue } from '@/components/charts/top-products-revenue';
 import { TopBuyers } from '@/components/charts/top-buyers';
+import { TopIssuers } from '@/components/charts/top-issuers';
 import {
   getTopProductsByQuantity,
   getTopProductsByRevenue,
   getTopBuyers,
+  getTopIssuers,
   type TopProductByQuantityItem,
   type TopProductByRevenueItem,
   type TopBuyerItem,
+  type TopIssuerItem,
 } from '@/lib/api/analytics';
 import { Text } from '@/components/ui/text';
 
@@ -27,11 +30,12 @@ export async function BatchAnalytics({ paramsPromise }: BatchAnalyticsProps) {
   const { getToken } = await auth();
   const authToken = await getToken();
 
-  const [analyticsQuantity, analyticsRevenue, analyticsBuyers] =
+  const [analyticsQuantity, analyticsRevenue, analyticsBuyers, analyticsIssuers] =
     await Promise.all([
       getTopProductsByQuantity(batchId, undefined, { authToken }),
       getTopProductsByRevenue(batchId, undefined, { authToken }),
       getTopBuyers(batchId, undefined, { authToken }),
+      getTopIssuers(batchId, undefined, { authToken }),
     ]);
 
   return (
@@ -60,6 +64,10 @@ export async function BatchAnalytics({ paramsPromise }: BatchAnalyticsProps) {
 
         <Suspense fallback={<ChartSkeleton />}>
           <TopBuyers data={analyticsBuyers.data as TopBuyerItem[]} />
+        </Suspense>
+
+        <Suspense fallback={<ChartSkeleton />}>
+          <TopIssuers data={analyticsIssuers.data as TopIssuerItem[]} />
         </Suspense>
       </div>
     </section>

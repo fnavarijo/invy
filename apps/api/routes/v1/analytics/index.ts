@@ -229,6 +229,54 @@ const analyticsRoutes: FastifyPluginAsync = async (fastify) => {
       });
     },
   );
+
+  // ── GET /v1/analytics/top-issuers ────────────────────────────────────────
+  fastify.get<{ Querystring: AnalyticsQuery }>(
+    '/top-issuers',
+    async (
+      request: FastifyRequest<{ Querystring: AnalyticsQuery }>,
+      reply: FastifyReply,
+    ) => {
+      const { userId } = getAuth(request);
+      const rangeResult = parseDateRange(request.query.issued_from, request.query.issued_to);
+      if (!rangeResult.ok) return reply.status(rangeResult.status).send(rangeResult.body);
+      const range = rangeResult;
+
+      const limit = Math.min(parseInt(request.query.limit ?? '10', 10) || 10, 50);
+
+      const conditions = [
+        eq(invoices.user_id, userId!),
+        gte(invoices.issued_at, range.from),
+        lte(invoices.issued_at, range.to),
+      ];
+      if (request.query.issuer_nit) conditions.push(eq(invoices.issuer_nit, request.query.issuer_nit));
+      if (request.query.client_nit) conditions.push(eq(invoices.client_nit, request.query.client_nit));
+
+      const rows = await fastify.db
+        .select({
+          issuer_name: invoices.issuer_name,
+          issuer_nit: invoices.issuer_nit,
+          total_received: sql<string>`SUM(${invoices.total_amount})::text`,
+          invoice_count: sql<number>`COUNT(*)::int`,
+        })
+        .from(invoices)
+        .where(and(...conditions))
+        .groupBy(invoices.issuer_name, invoices.issuer_nit)
+        .orderBy(sql`SUM(${invoices.total_amount}) DESC`)
+        .limit(limit);
+
+      return reply.send({
+        issued_from: request.query.issued_from,
+        issued_to: request.query.issued_to,
+        data: rows.map((r) => ({
+          issuer_name: r.issuer_name,
+          issuer_nit: r.issuer_nit,
+          total_received: Number(r.total_received).toFixed(2),
+          invoice_count: r.invoice_count,
+        })),
+      });
+    },
+  );
 };
 
 export default analyticsRoutes;

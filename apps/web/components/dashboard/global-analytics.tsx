@@ -4,10 +4,12 @@ import { Text } from '@/components/ui/text';
 import { TopProductsQuantity } from '@/components/charts/top-products-quantity';
 import { TopProductsRevenue } from '@/components/charts/top-products-revenue';
 import { TopBuyers } from '@/components/charts/top-buyers';
+import { TopIssuers } from '@/components/charts/top-issuers';
 import {
   getGlobalTopProductsByQuantity,
   getGlobalTopProductsByRevenue,
   getGlobalTopBuyers,
+  getGlobalTopIssuers,
 } from '@/lib/api/global-analytics';
 import type { DateRange } from '@/lib/date-range';
 
@@ -27,10 +29,11 @@ export async function GlobalAnalytics({ range, issuerNit, clientNit }: GlobalAna
 
   const params = { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, issuerNit, clientNit, limit: 50 };
 
-  const [analyticsQuantity, analyticsRevenue, analyticsBuyers] = await Promise.all([
+  const [analyticsQuantity, analyticsRevenue, analyticsBuyers, analyticsIssuers] = await Promise.all([
     getGlobalTopProductsByQuantity(params, { authToken }),
     getGlobalTopProductsByRevenue(params, { authToken }),
     getGlobalTopBuyers(params, { authToken }),
+    getGlobalTopIssuers(params, { authToken }),
   ]);
 
   return (
@@ -40,7 +43,7 @@ export async function GlobalAnalytics({ range, issuerNit, clientNit }: GlobalAna
           Análisis del periodo
         </Text>
         <Text size="body" className="text-muted-foreground">
-          Productos y compradores principales en el rango seleccionado.
+          Productos, compradores y proveedores principales en el rango seleccionado.
         </Text>
       </div>
 
@@ -60,12 +63,17 @@ export async function GlobalAnalytics({ range, issuerNit, clientNit }: GlobalAna
         </Suspense>
 
         <Suspense fallback={<ChartSkeleton />}>
-          <div className="sm:col-span-2">
-            <TopBuyers
-              data={analyticsBuyers.data}
-              description="Clientes con mayor gasto en el periodo"
-            />
-          </div>
+          <TopBuyers
+            data={analyticsBuyers.data}
+            description="Clientes con mayor gasto en el periodo"
+          />
+        </Suspense>
+
+        <Suspense fallback={<ChartSkeleton />}>
+          <TopIssuers
+            data={analyticsIssuers.data}
+            description="Proveedores con mayor facturación en el periodo"
+          />
         </Suspense>
       </div>
     </section>
@@ -82,9 +90,8 @@ export function GlobalAnalyticsSkeleton() {
       <div className="grid gap-4 sm:grid-cols-2">
         <ChartSkeleton />
         <ChartSkeleton />
-        <div className="sm:col-span-2">
-          <ChartSkeleton />
-        </div>
+        <ChartSkeleton />
+        <ChartSkeleton />
       </div>
     </section>
   );
