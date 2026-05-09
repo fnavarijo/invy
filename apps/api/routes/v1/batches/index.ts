@@ -642,11 +642,13 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
 
       const rows = await fastify.db.execute<{
         product_name: string;
+        total_quantity: string;
         total_amount: string;
       }>(sql`
         SELECT
-          elem->>'name'                  AS product_name,
-          SUM((elem->>'total')::numeric) AS total_amount
+          elem->>'name'                     AS product_name,
+          SUM((elem->>'quantity')::numeric) AS total_quantity,
+          SUM((elem->>'total')::numeric)    AS total_amount
         FROM invoices
         INNER JOIN batch_invoices ON invoices.invoice_id = batch_invoices.invoice_id
         CROSS JOIN jsonb_array_elements(line_items) AS elem
@@ -658,14 +660,16 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Productos');
       sheet.columns = [
-        { header: 'Producto', key: 'product_name', width: 48 },
-        { header: 'Total',    key: 'total_amount', width: 18 },
+        { header: 'Producto',  key: 'product_name',   width: 48 },
+        { header: 'Cantidad',  key: 'total_quantity',  width: 16 },
+        { header: 'Total',     key: 'total_amount',    width: 18 },
       ];
 
       for (const row of rows) {
         sheet.addRow({
-          product_name: row.product_name,
-          total_amount: Number(row.total_amount),
+          product_name:  row.product_name,
+          total_quantity: Number(row.total_quantity),
+          total_amount:  Number(row.total_amount),
         });
       }
 
