@@ -134,9 +134,9 @@ export function UploadZone() {
           <p className="text-sm text-muted-foreground">
             ID de lote: <span className="font-mono">{state.batch.batch_id}</span>
           </p>
-          <p className="text-sm text-muted-foreground">
+          {/* <p className="text-sm text-muted-foreground">
             Intento {state.attempt + 1}
-          </p>
+          </p> */}
         </div>
       </div>
     )

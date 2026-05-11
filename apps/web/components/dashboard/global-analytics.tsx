@@ -23,13 +23,28 @@ interface GlobalAnalyticsProps {
   clientNit?: string;
 }
 
-export async function GlobalAnalytics({ range, issuerNit, clientNit }: GlobalAnalyticsProps) {
+export async function GlobalAnalytics({
+  range,
+  issuerNit,
+  clientNit,
+}: GlobalAnalyticsProps) {
   const { getToken } = await auth();
   const authToken = await getToken();
 
-  const params = { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, issuerNit, clientNit, limit: 50 };
+  const params = {
+    issuedFrom: range.issuedFrom,
+    issuedTo: range.issuedTo,
+    issuerNit,
+    clientNit,
+    limit: 50,
+  };
 
-  const [analyticsQuantity, analyticsRevenue, analyticsBuyers, analyticsIssuers] = await Promise.all([
+  const [
+    analyticsQuantity,
+    analyticsRevenue,
+    analyticsBuyers,
+    analyticsIssuers,
+  ] = await Promise.all([
     getGlobalTopProductsByQuantity(params, { authToken }),
     getGlobalTopProductsByRevenue(params, { authToken }),
     getGlobalTopBuyers(params, { authToken }),
@@ -43,7 +58,8 @@ export async function GlobalAnalytics({ range, issuerNit, clientNit }: GlobalAna
           Análisis del periodo
         </Text>
         <Text size="body" className="text-muted-foreground">
-          Productos, compradores y proveedores principales en el rango seleccionado.
+          Productos, compradores y proveedores principales en el rango
+          seleccionado.
         </Text>
       </div>
 
@@ -58,7 +74,7 @@ export async function GlobalAnalytics({ range, issuerNit, clientNit }: GlobalAna
         <Suspense fallback={<ChartSkeleton />}>
           <TopProductsRevenue
             data={analyticsRevenue.data}
-            description="Ingresos por producto en el periodo"
+            description="Valor por producto en el periodo"
           />
         </Suspense>
 

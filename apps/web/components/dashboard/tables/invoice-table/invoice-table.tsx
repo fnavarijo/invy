@@ -65,12 +65,13 @@ export async function InvoiceTable({
           </Text>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" asChild>
+          {/* TODO: This should download based on the current filters, today is downloading everything */}
+          {/* <Button variant="outline" asChild>
             <a href={buildExportUrl(range)} download>
               <Download />
               Exportar
             </a>
-          </Button>
+          </Button> */}
           <InvoiceLimitSelector current={limit} />
         </div>
       </div>

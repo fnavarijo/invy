@@ -22,7 +22,7 @@ import { YAxisTick } from '@/components/charts/y-axis-tick';
 import type { TopProductByRevenueItem } from '@/lib/api/analytics';
 
 const PREVIEW_LIMIT = 10;
-const TITLE = 'Productos con mayor ingreso';
+const TITLE = 'Productos con mayor valor';
 
 const tooltipStyle = {
   background: 'var(--color-card)',
