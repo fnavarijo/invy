@@ -15,10 +15,17 @@ interface InvoiceTableProps {
   searchParams: Record<string, string | string[] | undefined>;
 }
 
-function buildExportUrl(range: DateRange) {
+function buildExportUrl(
+  range: DateRange,
+  filters: Record<string, string | string[] | undefined>,
+) {
   const params = new URLSearchParams();
   if (range.issuedFrom) params.set('issued_from', range.issuedFrom);
   if (range.issuedTo) params.set('issued_to', range.issuedTo);
+  if (filters.client_nit)
+    params.set('client_nit', filters.client_nit as string);
+  if (filters.issuer_nit)
+    params.set('issuer_nit', filters.issuer_nit as string);
   return `/api/invoices/export/xlsx?${params.toString()}`;
 }
 
@@ -66,12 +73,12 @@ export async function InvoiceTable({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {/* TODO: This should download based on the current filters, today is downloading everything */}
-          {/* <Button variant="outline" asChild>
-            <a href={buildExportUrl(range)} download>
+          <Button variant="outline" asChild>
+            <a href={buildExportUrl(range, searchParams)} download>
               <Download />
               Exportar
             </a>
-          </Button> */}
+          </Button>
           <InvoiceLimitSelector current={limit} />
         </div>
       </div>
