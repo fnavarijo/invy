@@ -3,7 +3,6 @@ import { clerkPlugin, getAuth } from '@clerk/fastify';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ErrorResponse } from '../types/index.ts';
 
-// Routes that bypass auth
 const PUBLIC_ROUTES = new Set(['/']);
 
 export default fp(async function (fastify: FastifyInstance) {
