@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table';
 import { Columns3 } from 'lucide-react';
 
-import { GlobalInvoiceListItem } from '@/lib/api/invoices';
+import { GlobalInvoiceListItem } from '@/lib/api/invoices/list-invoices';
 import { columns } from '@/components/dashboard/tables/invoice-table/columns';
 import {
   Table,

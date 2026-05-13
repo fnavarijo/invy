@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table';
 
-import { GlobalInvoiceListItem } from '@/lib/api/invoices';
+import { GlobalInvoiceListItem } from '@/lib/api/invoices/list-invoices';
 import { formatDate } from '@/lib/date-range';
 import { Badge } from '@/components/ui/badge';
 
@@ -14,19 +14,19 @@ const TYPE_LABELS: Record<string, string> = {
 
 export const columns: ColumnDef<GlobalInvoiceListItem>[] = [
   {
-    accessorKey: 'issued_at',
+    accessorKey: 'issuedAt',
     header: 'Fecha',
-    cell: ({ row }) => <span>{formatDate(row.getValue('issued_at'))}</span>,
+    cell: ({ row }) => <span>{formatDate(row.getValue('issuedAt'))}</span>,
   },
   {
-    accessorKey: 'invoice_number',
+    accessorKey: 'invoiceNumber',
     header: 'No. Factura',
     cell: ({ row }) => (
       <span
         className="block max-w-35 truncate font-mono"
-        title={row.getValue('invoice_number')}
+        title={row.getValue('invoiceNumber')}
       >
-        {row.getValue('invoice_number')}
+        {row.getValue('invoiceNumber')}
       </span>
     ),
   },
@@ -40,46 +40,46 @@ export const columns: ColumnDef<GlobalInvoiceListItem>[] = [
     ),
   },
   {
-    accessorKey: 'client_name',
+    accessorKey: 'clientName',
     header: 'Cliente',
     cell: ({ row }) => (
       <span
         className="block max-w-50 truncate"
-        title={row.getValue('client_name')}
+        title={row.getValue('clientName')}
       >
-        {row.getValue('client_name')}
+        {row.getValue('clientName')}
       </span>
     ),
   },
   {
-    accessorKey: 'client_nit',
+    accessorKey: 'clientNit',
     header: 'NIT Cliente',
   },
   {
-    accessorKey: 'issuer_name',
+    accessorKey: 'issuerName',
     header: 'Proveedor',
     cell: ({ row }) => (
       <span
         className="block max-w-50 truncate"
-        title={row.getValue('issuer_name')}
+        title={row.getValue('issuerName')}
       >
-        {row.getValue('issuer_name')}
+        {row.getValue('issuerName')}
       </span>
     ),
   },
   {
-    accessorKey: 'issuer_nit',
+    accessorKey: 'issuerNit',
     header: 'NIT Proveedor',
   },
   {
-    accessorKey: 'total_amount',
+    accessorKey: 'totalAmount',
     header: 'Total',
     cell: ({ row }) => (
       <span>
         {new Intl.NumberFormat('es-GT', {
           style: 'currency',
           currency: 'GTQ',
-        }).format(Number(row.getValue('total_amount')))}
+        }).format(Number(row.getValue('totalAmount')))}
       </span>
     ),
   },

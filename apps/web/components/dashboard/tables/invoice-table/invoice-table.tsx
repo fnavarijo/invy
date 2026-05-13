@@ -3,7 +3,7 @@ import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-import { listInvoices } from '@/lib/api/invoices';
+import { listInvoices } from '@/lib/api/invoices/index';
 import type { DateRange } from '@/lib/date-range';
 import { InvoiceLimitSelector } from '../../invoice-limit-selector';
 import { type InvoiceLimitOption } from '../../invoice-limit-options';
