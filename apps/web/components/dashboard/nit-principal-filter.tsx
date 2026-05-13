@@ -65,7 +65,7 @@ export function NitPrincipalFilter({ items }: NitPrincipalFilterProps) {
           )}
         >
           <Landmark className="size-3.5 shrink-0" />
-          <span className="max-w-[180px] truncate">
+          <span className="max-w-45 truncate">
             {activeItem ? activeItem.name : 'Seleccionar NIT'}
           </span>
           <ChevronDown className={cn('size-3 shrink-0 transition-transform', open && 'rotate-180')} />
