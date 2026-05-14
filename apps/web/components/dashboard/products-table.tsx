@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getInvoiceProducts } from '@/lib/api/invoices';
+import { getInvoiceProducts } from '@/lib/api/invoices/get-invoice-products';
 import type { DateRange } from '@/lib/date-range';
 
 interface ProductsTableProps {
@@ -93,10 +93,10 @@ export async function ProductsTable({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right font-mono tabular-nums">
-                  {Number(p.total_quantity).toLocaleString('es-GT')}
+                  {Number(p.totalQuantity).toLocaleString('es-GT')}
                 </TableCell>
                 <TableCell className="text-right font-mono font-medium tabular-nums">
-                  {formatCurrency(p.product_total, currency)}
+                  {formatCurrency(p.productTotal, currency)}
                 </TableCell>
               </TableRow>
             ))}

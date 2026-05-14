@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { listClients } from '@/lib/api/invoices';
+import { listClients } from '@/lib/api/invoices/list-clients';
 import { ClientFilter } from '@/components/dashboard/issuer-filter';
 import type { DateRange } from '@/lib/date-range';
 
@@ -12,6 +12,6 @@ export async function ClientFilterLoader({ range }: { range: DateRange }) {
     { authToken },
   );
 
-  const items = clients.map((c) => ({ nit: c.client_nit, name: c.client_name }));
+  const items = clients.map((c) => ({ nit: c.clientNit, name: c.clientName }));
   return <ClientFilter items={items} />;
 }

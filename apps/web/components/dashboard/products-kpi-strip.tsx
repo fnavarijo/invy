@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { FileText, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getInvoiceProducts } from '@/lib/api/invoices';
+import { getInvoiceProducts } from '@/lib/api/invoices/get-invoice-products';
 import type { DateRange } from '@/lib/date-range';
 
 interface ProductsKpiStripProps {
@@ -25,7 +25,7 @@ export async function ProductsKpiStrip({ range, currency, issuerNit, clientNit }
   const kpis = [
     {
       label: 'Total facturado',
-      value: `${prefix}${Number(data.invoices_total).toLocaleString('es-GT', { minimumFractionDigits: 2 })}`,
+      value: `${prefix}${Number(data.invoicesTotal).toLocaleString('es-GT', { minimumFractionDigits: 2 })}`,
       sub: 'suma de facturas',
       icon: TrendingUp,
     },

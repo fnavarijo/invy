@@ -24,49 +24,49 @@ const RAW_ITEM = {
 describe('[API] listInvoices', () => {
   describe('filter parameters', () => {
     test('sends issuedFrom as issued_from', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({ issuedFrom: '2024-01-01' });
       expect(captured.params!.get('issued_from')).toBe('2024-01-01');
     });
 
     test('sends issuedTo as issued_to', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({ issuedTo: '2024-01-31' });
       expect(captured.params!.get('issued_to')).toBe('2024-01-31');
     });
 
     test('sends limit', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({ limit: 50 });
       expect(captured.params!.get('limit')).toBe('50');
     });
 
     test('sends type', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({ type: 'FACT' });
       expect(captured.params!.get('type')).toBe('FACT');
     });
 
     test('sends currency', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({ currency: 'USD' });
       expect(captured.params!.get('currency')).toBe('USD');
     });
 
     test('sends issuerNit as issuer_nit', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({ issuerNit: '1234567' });
       expect(captured.params!.get('issuer_nit')).toBe('1234567');
     });
 
     test('sends clientNit as client_nit', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({ clientNit: '7654321' });
       expect(captured.params!.get('client_nit')).toBe('7654321');
     });
 
     test('omits params that are not set', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({});
       expect(captured.params!.has('issued_from')).toBe(false);
       expect(captured.params!.has('issued_to')).toBe(false);
@@ -78,19 +78,19 @@ describe('[API] listInvoices', () => {
 
   describe('auth token', () => {
     test('sends Authorization header when authToken is provided', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({}, { authToken: 'test-token' });
       expect(captured.headers!.get('Authorization')).toBe('Bearer test-token');
     });
 
     test('omits Authorization header when authToken is not provided', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({});
       expect(captured.headers!.get('Authorization')).toBeNull();
     });
 
     test('omits Authorization header when authToken is null', async () => {
-      const captured = captureRequest(URLS.INVOICES);
+      const captured = captureRequest(URLS.INVOICES.LIST);
       await listInvoices({}, { authToken: null });
       expect(captured.headers!.get('Authorization')).toBeNull();
     });
@@ -99,7 +99,7 @@ describe('[API] listInvoices', () => {
   describe('return value', () => {
     test('maps item fields to camelCase', async () => {
       setRequest({
-        url: URLS.INVOICES,
+        url: URLS.INVOICES.LIST,
         body: { data: [RAW_ITEM], next_cursor: null },
       });
 
@@ -122,7 +122,7 @@ describe('[API] listInvoices', () => {
 
     test('does not expose snake_case keys on items', async () => {
       setRequest({
-        url: URLS.INVOICES,
+        url: URLS.INVOICES.LIST,
         body: { data: [RAW_ITEM], next_cursor: null },
       });
 
@@ -142,7 +142,7 @@ describe('[API] listInvoices', () => {
 
     test('maps next_cursor to nextCursor', async () => {
       setRequest({
-        url: URLS.INVOICES,
+        url: URLS.INVOICES.LIST,
         body: { data: [], next_cursor: 'cursor-abc' },
       });
 

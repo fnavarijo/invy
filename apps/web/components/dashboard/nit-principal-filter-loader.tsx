@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
-import { listIssuers, listClients } from '@/lib/api/invoices';
+import { listIssuers } from '@/lib/api/invoices/list-issuers';
+import { listClients } from '@/lib/api/invoices/list-clients';
 import { NitPrincipalFilter } from '@/components/dashboard/nit-principal-filter';
 import type { NitItem } from '@/components/dashboard/issuer-filter';
 import type { DateRange } from '@/lib/date-range';
@@ -14,9 +15,9 @@ export async function NitPrincipalFilterLoader({ range }: { range: DateRange }) 
   ]);
 
   const byNit = new Map<string, NitItem>();
-  for (const i of issuers) byNit.set(i.issuer_nit, { nit: i.issuer_nit, name: i.issuer_name });
+  for (const i of issuers) byNit.set(i.issuerNit, { nit: i.issuerNit, name: i.issuerName });
   for (const c of clients) {
-    if (!byNit.has(c.client_nit)) byNit.set(c.client_nit, { nit: c.client_nit, name: c.client_name });
+    if (!byNit.has(c.clientNit)) byNit.set(c.clientNit, { nit: c.clientNit, name: c.clientName });
   }
 
   const items = Array.from(byNit.values()).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
