@@ -39,6 +39,7 @@ export default defineConfig({
         test: {
           name: 'app-web',
           environment: 'jsdom',
+          setupFiles: './tests/http-mock-setup.ts',
         },
       },
     ],
