@@ -97,23 +97,23 @@ export async function BatchHistory() {
       <CardContent className="pt-0 pb-0">
         <ul aria-label="Lotes recientes">
           {rows.map((batch) => (
-            <li key={batch.batch_id} className="border-b last:border-b-0">
+            <li key={batch.batchId} className="border-b last:border-b-0">
               <a
-                href={`/batches/${batch.batch_id}`}
+                href={`/batches/${batch.batchId}`}
                 className="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
               >
-                <FileIcon fileType={batch.file_type} />
+                <FileIcon fileType={batch.fileType} />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                  {batch.source ?? batch.file_name}
+                  {batch.source ?? batch.fileName}
                 </span>
                 <Badge variant="outline" style={getStatusStyle(batch.status)} className="shrink-0 text-xs">
                   {STATUS_LABELS[batch.status]}
                 </Badge>
                 <span className="hidden sm:block shrink-0 w-16 text-right text-sm text-muted-foreground tabular-nums">
-                  {batch.invoice_count !== null ? `${batch.invoice_count} fact.` : '—'}
+                  {batch.invoiceCount !== null ? `${batch.invoiceCount} fact.` : '—'}
                 </span>
                 <span className="hidden sm:block shrink-0 w-20 text-right text-sm text-muted-foreground">
-                  {formatRelativeDate(batch.created_at)}
+                  {formatRelativeDate(batch.createdAt)}
                 </span>
               </a>
             </li>

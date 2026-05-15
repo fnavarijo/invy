@@ -28,21 +28,21 @@ export async function BatchHeader({ paramsPromise }: BatchHeaderProps) {
 
   const batch = await getBatch(id, { authToken: token });
 
-  const hasFailed = (batch.failed_count ?? 0) > 0;
+  const hasFailed = (batch.failedCount ?? 0) > 0;
 
   return (
     <section aria-labelledby="batch-heading">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Text size="h1" id="batch-heading">
-          {batch.source ?? batch.file_name}
+          {batch.source ?? batch.fileName}
         </Text>
         <Badge variant="outline" style={getStatusStyle(batch.status)}>
           {STATUS_LABELS[batch.status]}
         </Badge>
         {batch.status === 'done' && (
           <>
-            <DownloadReportButton batchId={batch.batch_id} />
-            <DownloadProductsButton batchId={batch.batch_id} />
+            <DownloadReportButton batchId={batch.batchId} />
+            <DownloadProductsButton batchId={batch.batchId} />
           </>
         )}
       </div>
@@ -53,25 +53,25 @@ export async function BatchHeader({ paramsPromise }: BatchHeaderProps) {
             <div>
               <dt className="text-sm text-muted-foreground">ID de lote</dt>
               <dd className="mt-1 font-mono text-sm text-foreground break-all">
-                {batch.batch_id}
+                {batch.batchId}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-muted-foreground">Facturas</dt>
               <dd className="mt-1 font-mono text-sm font-medium text-foreground">
-                {batch.invoice_count ?? '—'}
+                {batch.invoiceCount ?? '—'}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-muted-foreground">Fallidas</dt>
               <dd className={`mt-1 font-mono text-sm font-medium ${hasFailed ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {batch.failed_count ?? '—'}
+                {batch.failedCount ?? '—'}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-muted-foreground">Creado el</dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
-                {formatDate(batch.created_at)}
+                {formatDate(batch.createdAt)}
               </dd>
             </div>
           </dl>

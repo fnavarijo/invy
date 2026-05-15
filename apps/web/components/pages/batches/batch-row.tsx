@@ -34,7 +34,7 @@ export function BatchRow({ batch }: { batch: BatchListItem }) {
     setError(null);
     try {
       const authToken = await getToken();
-      await deleteBatch(batch.batch_id, { authToken });
+      await deleteBatch(batch.batchId, { authToken });
       setOptimisticDeleted(true);
       setOpen(false);
       router.refresh();
@@ -53,28 +53,28 @@ export function BatchRow({ batch }: { batch: BatchListItem }) {
   return (
     <li className="flex items-center border-b transition-colors last:border-b-0 hover:bg-primary/10">
       <a
-        href={`/batches/${batch.batch_id}`}
+        href={`/batches/${batch.batchId}`}
         className="group flex flex-1 items-center gap-4 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       >
-        <FileIcon fileType={batch.file_type} />
+        <FileIcon fileType={batch.fileType} />
         <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-          {batch.source ?? batch.file_name}
+          {batch.source ?? batch.fileName}
         </span>
         <Badge variant="outline" style={getStatusStyle(batch.status)} className="shrink-0">
           {STATUS_LABELS[batch.status]}
         </Badge>
         <span className="hidden sm:block shrink-0 w-16 text-right text-sm text-muted-foreground tabular-nums">
-          {batch.invoice_count !== null ? `${batch.invoice_count} fact.` : '—'}
+          {batch.invoiceCount !== null ? `${batch.invoiceCount} fact.` : '—'}
         </span>
         <span className="hidden sm:block shrink-0 w-20 text-right text-sm text-muted-foreground">
-          {formatRelativeDate(batch.created_at)}
+          {formatRelativeDate(batch.createdAt)}
         </span>
       </a>
       <div className="px-2">
         <Button
           variant="ghost"
           size="icon"
-          aria-label={`Eliminar lote ${batch.source ?? batch.file_name}`}
+          aria-label={`Eliminar lote ${batch.source ?? batch.fileName}`}
           onClick={() => setOpen(true)}
         >
           <Trash2 className="size-4" />
@@ -86,8 +86,8 @@ export function BatchRow({ batch }: { batch: BatchListItem }) {
           <DialogHeader>
             <DialogTitle>Eliminar lote</DialogTitle>
             <DialogDescription>
-              Esta acción eliminará <strong>{batch.source ?? batch.file_name}</strong> y sus{' '}
-              <strong>{batch.invoice_count ?? 0} facturas</strong> de forma permanente. Esta acción
+              Esta acción eliminará <strong>{batch.source ?? batch.fileName}</strong> y sus{' '}
+              <strong>{batch.invoiceCount ?? 0} facturas</strong> de forma permanente. Esta acción
               no se puede deshacer.
             </DialogDescription>
           </DialogHeader>

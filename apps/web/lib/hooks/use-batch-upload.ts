@@ -1,6 +1,7 @@
 import { useReducer, useRef, useCallback, useEffect } from 'react';
 import {
   getBatch,
+  mapBatchCreate,
   type BatchCreateResponse,
   type BatchDetailResponse,
 } from '@/lib/api/batches';
@@ -253,9 +254,9 @@ export function useBatchUpload(options?: { onComplete?: () => void }): {
 
         if (xhr.status === 202 || xhr.status === 200) {
           try {
-            const batch = JSON.parse(xhr.responseText) as BatchCreateResponse;
+            const batch = mapBatchCreate(JSON.parse(xhr.responseText));
             dispatch({ type: 'UPLOAD_DONE', batch });
-            schedulePoll(batch.batch_id, batch, 0);
+            schedulePoll(batch.batchId, batch, 0);
           } catch {
             dispatch({ type: 'FAIL', error: 'Invalid response from server.' });
           }

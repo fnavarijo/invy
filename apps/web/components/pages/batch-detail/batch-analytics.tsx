@@ -10,10 +10,6 @@ import {
   getTopProductsByRevenue,
   getTopBuyers,
   getTopIssuers,
-  type TopProductByQuantityItem,
-  type TopProductByRevenueItem,
-  type TopBuyerItem,
-  type TopIssuerItem,
 } from '@/lib/api/analytics';
 import { Text } from '@/components/ui/text';
 
@@ -51,23 +47,19 @@ export async function BatchAnalytics({ paramsPromise }: BatchAnalyticsProps) {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
         <Suspense fallback={<ChartSkeleton />}>
-          <TopProductsQuantity
-            data={analyticsQuantity.data as TopProductByQuantityItem[]}
-          />
+          <TopProductsQuantity data={analyticsQuantity.data} />
         </Suspense>
 
         <Suspense fallback={<ChartSkeleton />}>
-          <TopProductsRevenue
-            data={analyticsRevenue.data as TopProductByRevenueItem[]}
-          />
+          <TopProductsRevenue data={analyticsRevenue.data} />
         </Suspense>
 
         <Suspense fallback={<ChartSkeleton />}>
-          <TopBuyers data={analyticsBuyers.data as TopBuyerItem[]} />
+          <TopBuyers data={analyticsBuyers.data} />
         </Suspense>
 
         <Suspense fallback={<ChartSkeleton />}>
-          <TopIssuers data={analyticsIssuers.data as TopIssuerItem[]} />
+          <TopIssuers data={analyticsIssuers.data} />
         </Suspense>
       </div>
     </section>

@@ -4,6 +4,7 @@
 
 - Prefer camelCase over other casing when naming variables, functions, object properties,
   - exceptions: CONSTANTS
+- For non-UI code, always follow TDD pattern. Write Unit tests before writing core logic.
 
 ## API Interactions
 
@@ -24,13 +25,16 @@ Tests import `setRequest`, `captureRequest`, and `URLS` from `tests/http-mock-se
 When a test only cares about the return value, call `setRequest({ url, body })` to override what the server returns for that test. The override is automatically torn down after each test.
 
 ```ts
-setRequest({ url: URLS.INVOICES, body: { data: [RAW_ITEM], next_cursor: null } });
+setRequest({
+  url: URLS.INVOICES,
+  body: { data: [RAW_ITEM], next_cursor: null },
+});
 const result = await listInvoices({});
 expect(result.data[0].invoiceId).toBe('inv-1');
 ```
 
 **Inspect the outgoing request with `captureRequest`.**
-When a test needs to verify what the function sent (query params, headers), call `captureRequest(url)` before the function call. Read from the returned object *after* the `await` — never destructure it up front, or you'll capture the initial `null` instead of the populated value.
+When a test needs to verify what the function sent (query params, headers), call `captureRequest(url)` before the function call. Read from the returned object _after_ the `await` — never destructure it up front, or you'll capture the initial `null` instead of the populated value.
 
 ```ts
 const captured = captureRequest(URLS.INVOICES);

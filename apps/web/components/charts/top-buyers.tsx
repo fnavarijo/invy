@@ -87,7 +87,7 @@ type Props = { data: TopBuyerItem[]; description?: string };
 
 export function TopBuyers({ data, description }: Props) {
   const allData = data
-    .map((item) => ({ name: item.client_name, value: parseFloat(item.total_spent) }))
+    .map((item) => ({ name: item.clientName, value: parseFloat(item.totalSpent) }))
     .filter((item) => !isNaN(item.value));
 
   const previewData = allData.slice(0, PREVIEW_LIMIT);

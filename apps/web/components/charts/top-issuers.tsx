@@ -87,7 +87,7 @@ type Props = { data: TopIssuerItem[]; description?: string };
 
 export function TopIssuers({ data, description }: Props) {
   const allData = data
-    .map((item) => ({ name: item.issuer_name, value: parseFloat(item.total_received) }))
+    .map((item) => ({ name: item.issuerName, value: parseFloat(item.totalReceived) }))
     .filter((item) => !isNaN(item.value));
 
   const previewData = allData.slice(0, PREVIEW_LIMIT);

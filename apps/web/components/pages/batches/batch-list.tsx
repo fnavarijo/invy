@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { listBatches, type BatchListItem } from '@/lib/api/batches';
+import { listBatches, type BatchListItem, type BatchListResponse } from '@/lib/api/batches';
 import { BatchRow } from '@/components/pages/batches/batch-row';
 import { LoadMoreLink } from '@/components/pages/batches/load-more-link';
 
@@ -9,7 +9,7 @@ export async function BatchList({ cursor }: { cursor?: string }) {
   const { getToken } = await auth();
   const authToken = await getToken();
 
-  let data: { data: BatchListItem[]; next_cursor: string | null } | null = null;
+  let data: BatchListResponse | null = null;
   let fetchError = false;
 
   try {
@@ -60,10 +60,10 @@ export async function BatchList({ cursor }: { cursor?: string }) {
       <CardContent className="pt-0 pb-0">
         <ul aria-label="Todos los lotes">
           {data!.data.map((batch) => (
-            <BatchRow key={batch.batch_id} batch={batch} />
+            <BatchRow key={batch.batchId} batch={batch} />
           ))}
         </ul>
-        {data!.next_cursor && <LoadMoreLink cursor={data!.next_cursor} />}
+        {data!.nextCursor && <LoadMoreLink cursor={data!.nextCursor} />}
       </CardContent>
     </Card>
   );

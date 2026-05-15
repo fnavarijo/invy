@@ -92,8 +92,8 @@ type Props = { data: TopProductByRevenueItem[]; description?: string };
 export function TopProductsRevenue({ data, description }: Props) {
   const allData = data
     .map((item) => ({
-      name: item.product_name,
-      value: parseFloat(item.total_revenue),
+      name: item.productName,
+      value: parseFloat(item.totalRevenue),
     }))
     .filter((item) => !isNaN(item.value));
 

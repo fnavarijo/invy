@@ -36,6 +36,9 @@ export default defineConfig({
       },
       {
         plugins: [react()],
+        resolve: {
+          alias: { '@': path.resolve(dirname) },
+        },
         test: {
           name: 'app-web',
           environment: 'jsdom',
