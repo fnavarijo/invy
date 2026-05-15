@@ -430,6 +430,7 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           AND NOT EXISTS (
             SELECT 1 FROM batch_invoices
             WHERE batch_invoices.invoice_id = invoices.invoice_id
+            AND batch_invoices.batch_id != ${deleted[0]!.batch_id}
           )
       `);
 
@@ -502,7 +503,10 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const rows = await fastify.db
         .select(invoiceListColumns)
         .from(invoices)
-        .innerJoin(batchInvoices, eq(invoices.invoice_id, batchInvoices.invoice_id))
+        .innerJoin(
+          batchInvoices,
+          eq(invoices.invoice_id, batchInvoices.invoice_id),
+        )
         .where(and(...conditions))
         .orderBy(asc(invoices.created_at), asc(invoices.invoice_id))
         .limit(limit + 1);
@@ -551,7 +555,10 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           source_file: batchInvoices.source_file,
         })
         .from(invoices)
-        .innerJoin(batchInvoices, eq(invoices.invoice_id, batchInvoices.invoice_id))
+        .innerJoin(
+          batchInvoices,
+          eq(invoices.invoice_id, batchInvoices.invoice_id),
+        )
         .where(eq(batchInvoices.batch_id, batch_id))
         .orderBy(asc(invoices.issued_at), asc(invoices.invoice_id));
 
@@ -660,16 +667,16 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Productos');
       sheet.columns = [
-        { header: 'Producto',  key: 'product_name',   width: 48 },
-        { header: 'Cantidad',  key: 'total_quantity',  width: 16 },
-        { header: 'Total',     key: 'total_amount',    width: 18 },
+        { header: 'Producto', key: 'product_name', width: 48 },
+        { header: 'Cantidad', key: 'total_quantity', width: 16 },
+        { header: 'Total', key: 'total_amount', width: 18 },
       ];
 
       for (const row of rows) {
         sheet.addRow({
-          product_name:  row.product_name,
+          product_name: row.product_name,
           total_quantity: Number(row.total_quantity),
-          total_amount:  Number(row.total_amount),
+          total_amount: Number(row.total_amount),
         });
       }
 
@@ -677,7 +684,10 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
       const fileName = `batch_${batch_id}_products.xlsx`;
 
       return reply
-        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header(
+          'Content-Type',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
         .header('Content-Disposition', `attachment; filename="${fileName}"`)
         .send(Buffer.from(buffer));
     },
@@ -820,7 +830,10 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           invoice_count: sql<number>`COUNT(*)::int`,
         })
         .from(invoices)
-        .innerJoin(batchInvoices, eq(invoices.invoice_id, batchInvoices.invoice_id))
+        .innerJoin(
+          batchInvoices,
+          eq(invoices.invoice_id, batchInvoices.invoice_id),
+        )
         .where(eq(batchInvoices.batch_id, batch_id))
         .groupBy(invoices.client_name, invoices.client_nit)
         .orderBy(sql`SUM(${invoices.total_amount}) DESC`)
@@ -871,7 +884,10 @@ const batchesRoute: FastifyPluginAsync = async (fastify) => {
           invoice_count: sql<number>`COUNT(*)::int`,
         })
         .from(invoices)
-        .innerJoin(batchInvoices, eq(invoices.invoice_id, batchInvoices.invoice_id))
+        .innerJoin(
+          batchInvoices,
+          eq(invoices.invoice_id, batchInvoices.invoice_id),
+        )
         .where(eq(batchInvoices.batch_id, batch_id))
         .groupBy(invoices.issuer_name, invoices.issuer_nit)
         .orderBy(sql`SUM(${invoices.total_amount}) DESC`)
