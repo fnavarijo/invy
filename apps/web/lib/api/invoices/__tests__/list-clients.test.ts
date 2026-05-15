@@ -1,7 +1,11 @@
 import { describe, test, expect } from 'vitest';
 
-import { listClients } from '../invoices/list-clients';
-import { setRequest, captureRequest, URLS } from '../../../tests/http-mock-setup';
+import { listClients } from '../list-clients';
+import {
+  setRequest,
+  captureRequest,
+  URLS,
+} from '../../../../tests/http-mock-setup';
 
 const RAW_CLIENT = { client_nit: '7654321', client_name: 'Cliente ABC' };
 
@@ -51,7 +55,10 @@ describe('[API] listClients', () => {
     test('maps items to camelCase', async () => {
       setRequest({ url: URLS.INVOICES.CLIENTS, body: { data: [RAW_CLIENT] } });
       const result = await listClients({});
-      expect(result[0]).toEqual({ clientNit: '7654321', clientName: 'Cliente ABC' });
+      expect(result[0]).toEqual({
+        clientNit: '7654321',
+        clientName: 'Cliente ABC',
+      });
     });
 
     test('does not expose snake_case keys', async () => {

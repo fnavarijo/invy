@@ -1,11 +1,11 @@
 import { describe, test, expect } from 'vitest';
 
-import { listInvoices } from '../invoices/list-invoices';
+import { listInvoices } from '../list-invoices';
 import {
   setRequest,
   captureRequest,
   URLS,
-} from '../../../tests/http-mock-setup';
+} from '../../../../tests/http-mock-setup';
 
 const RAW_ITEM = {
   invoice_id: 'inv-1',

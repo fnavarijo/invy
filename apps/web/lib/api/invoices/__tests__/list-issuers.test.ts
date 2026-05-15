@@ -1,8 +1,12 @@
 import { describe, test, expect } from 'vitest';
-import { http, HttpResponse } from 'msw';
 
-import { listIssuers } from '../invoices/list-issuers';
-import { server, setRequest, captureRequest, URLS } from '../../../tests/http-mock-setup';
+import { listIssuers } from '../list-issuers';
+import {
+  server,
+  setRequest,
+  captureRequest,
+  URLS,
+} from '../../../../tests/http-mock-setup';
 
 const RAW_ISSUER = { issuer_nit: '1234567', issuer_name: 'Empresa XYZ' };
 
@@ -52,7 +56,10 @@ describe('[API] listIssuers', () => {
     test('maps items to camelCase', async () => {
       setRequest({ url: URLS.INVOICES.ISSUERS, body: { data: [RAW_ISSUER] } });
       const result = await listIssuers({});
-      expect(result[0]).toEqual({ issuerNit: '1234567', issuerName: 'Empresa XYZ' });
+      expect(result[0]).toEqual({
+        issuerNit: '1234567',
+        issuerName: 'Empresa XYZ',
+      });
     });
 
     test('does not expose snake_case keys', async () => {
