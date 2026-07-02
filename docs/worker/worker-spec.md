@@ -214,8 +214,10 @@ Insert all successful invoice rows into the database. Use batched inserts if the
 
 ```typescript
 if (invoiceRows.length > 0) {
-  // Flush in chunks so invoiceRows never retains more than CHUNK_SIZE
-  // rows in memory at once — see "Memory tunables" below.
+  // Batch INSERTs into chunks of CHUNK_SIZE rows to keep each query a
+  // reasonable size. invoiceRows was already fully populated in step 5,
+  // so this alone doesn't bound memory — the real worker's CHUNK_SIZE-
+  // based incremental flush does that; see "Memory tunables" below.
   const CHUNK_SIZE = Number(process.env.CHUNK_SIZE ?? 25)
   for (let i = 0; i < invoiceRows.length; i += CHUNK_SIZE) {
     await db.insert(invoices).values(invoiceRows.slice(i, i + CHUNK_SIZE))
