@@ -27,9 +27,6 @@ export async function* iterateEntries(
       throw err
     }
   } else {
-    // Transitional: the 1-arg legacy signature (its own env-based guards).
-    // Task 6 rewires streamXmlsFromZip to consume `limits` and changes this
-    // call to streamXmlsFromZip(stream, limits).
-    yield* streamXmlsFromZip(stream)
+    yield* streamXmlsFromZip(stream, limits)
   }
 }
