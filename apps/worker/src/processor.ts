@@ -143,7 +143,7 @@ export async function processJob(
 
       let extracted;
       try {
-        extracted = extractInvoiceFields(entry.content);
+        extracted = extractInvoiceFields(validation.doc);
       } catch (err) {
         errorCount++;
         if (errors.length < MAX_ERRORS) {
