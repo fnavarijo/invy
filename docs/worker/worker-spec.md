@@ -43,7 +43,7 @@ import { processJob } from './processor'
 
 const worker = new Worker('invoice-processing', processJob, {
   connection,
-  concurrency: 4,       // process up to 4 jobs in parallel
+  concurrency: Number(process.env.WORKER_CONCURRENCY ?? 1),  // fixed at 1 for the 512 MB / 1 vCPU box
   lockDuration: 60_000, // 60s lock — extend if processing large ZIPs
 })
 
@@ -52,7 +52,7 @@ worker.on('failed', (job, err) => {
 })
 ```
 
-**Concurrency:** Set to 4 by default. Each job fetches and processes one file. Adjust based on available CPU and memory on the DO worker instance.
+**Concurrency:** Set to 1 by default via `WORKER_CONCURRENCY`. Each job fetches and processes one file. The default is fixed at 1 for the current 512 MB / 1 vCPU worker instance size — see "Memory tunables" below. Only raise it if the instance is upsized accordingly.
 
 ---
 
@@ -214,8 +214,9 @@ Insert all successful invoice rows into the database. Use batched inserts if the
 
 ```typescript
 if (invoiceRows.length > 0) {
-  // Insert in chunks of 100 to avoid query size limits
-  const CHUNK_SIZE = 100
+  // Flush in chunks so invoiceRows never retains more than CHUNK_SIZE
+  // rows in memory at once — see "Memory tunables" below.
+  const CHUNK_SIZE = Number(process.env.CHUNK_SIZE ?? 25)
   for (let i = 0; i < invoiceRows.length; i += CHUNK_SIZE) {
     await db.insert(invoices).values(invoiceRows.slice(i, i + CHUNK_SIZE))
   }
@@ -561,7 +562,7 @@ workers:
         type: SECRET
 ```
 
-Scaling `instance_count` increases parallel job processing. Each instance runs `WORKER_CONCURRENCY` jobs concurrently, so `instance_count: 2` with `WORKER_CONCURRENCY: 4` = 8 parallel jobs.
+Scaling `instance_count` increases parallel job processing. Each instance runs `WORKER_CONCURRENCY` jobs concurrently, so with the default `WORKER_CONCURRENCY: 1`, `instance_count: 2` = 2 parallel jobs. Raising `WORKER_CONCURRENCY` above 1 is an override, not the default — only do so on an upsized instance (see "Memory tunables" above).
 
 ---
 
