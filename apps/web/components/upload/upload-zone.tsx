@@ -15,7 +15,7 @@ type UploadedFile = {
 
 const ACCEPTED_TYPES = ["application/xml", "text/xml", "application/zip", "application/x-zip-compressed"]
 const ACCEPTED_EXTS = [".xml", ".zip"]
-const MAX_SIZE_MB = 50
+const MAX_SIZE_MB = 100
 
 function humanSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
