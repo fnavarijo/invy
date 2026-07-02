@@ -5,9 +5,10 @@ import { eq, inArray } from 'drizzle-orm';
 import { type DB, batches, invoices, batchInvoices } from '@invy/db';
 import { type StorageClient, StorageError } from '@invy/storage';
 import { NonRetryableError } from './errors.ts';
-import { streamXmlsFromZip } from './unzip.ts';
+import { iterateEntries } from './entries.ts';
 import { validateXsd, extractInvoiceFields } from './xml.ts';
 import { normalizeInvoice } from './normalizer.ts';
+import { env } from './env.ts';
 import { ulid } from 'ulid';
 
 export type JobPayload = { batchId: string; fileKey: string };
@@ -15,20 +16,10 @@ type NewInvoice = InferInsertModel<typeof invoices>;
 type NewBatchInvoice = InferInsertModel<typeof batchInvoices>;
 type BatchError = { file_name: string; reason: string };
 
-const CHUNK_SIZE = 100;
 const MAX_ERRORS = 500;
 
 function generateId(prefix: string): string {
   return `${prefix}_${ulid().toLowerCase()}`;
-}
-
-function streamToBuffer(stream: Readable): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-    stream.on('end', () => resolve(Buffer.concat(chunks)));
-    stream.on('error', reject);
-  });
 }
 
 type PendingInvoice = { invoiceRow: NewInvoice; sourceFile: string };
@@ -121,17 +112,28 @@ export async function processJob(
   let errorCount = 0;
   let totalSuccessCount = 0;
 
-  async function* entrySource() {
-    if (batch.file_type === 'xml') {
-      const content = await streamToBuffer(fileStream);
-      yield { fileName: batch.file_name, content };
-    } else {
-      yield* streamXmlsFromZip(fileStream);
-    }
-  }
+  const limits = {
+    maxXmlBytes: env.MAX_XML_BYTES,
+    maxTotalDecompressedBytes: env.MAX_TOTAL_DECOMPRESSED_BYTES,
+    maxDecompressionRatio: env.MAX_DECOMPRESSION_RATIO,
+    maxEntries: env.MAX_XML_ENTRIES,
+  };
 
   try {
-    for await (const entry of entrySource()) {
+    for await (const entry of iterateEntries(
+      batch.file_type as 'xml' | 'zip',
+      batch.file_name,
+      fileStream,
+      limits,
+    )) {
+      if (entry.error !== undefined) {
+        errorCount++;
+        if (errors.length < MAX_ERRORS) {
+          errors.push({ file_name: entry.fileName, reason: entry.error });
+        }
+        continue;
+      }
+
       const validation = validateXsd(entry.content);
       if (!validation.ok) {
         errorCount++;
@@ -182,7 +184,7 @@ export async function processJob(
         },
       });
 
-      if (chunkBuffer.length === CHUNK_SIZE) {
+      if (chunkBuffer.length === env.CHUNK_SIZE) {
         await flushChunk(chunkBuffer, batchId, db);
         totalSuccessCount += chunkBuffer.length;
         chunkBuffer.length = 0;
