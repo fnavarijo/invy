@@ -8,3 +8,15 @@ export class NonRetryableError extends UnrecoverableError {
     this.name = 'NonRetryableError'
   }
 }
+
+// Signals that a single XML (standalone file or ZIP entry) exceeded the
+// per-XML byte cap. Callers record a BatchError and continue the batch,
+// rather than failing the whole job.
+export class FileTooLargeError extends Error {
+  readonly size: number
+  constructor(size: number) {
+    super(`File exceeds limit at ${size} bytes`)
+    this.name = 'FileTooLargeError'
+    this.size = size
+  }
+}
