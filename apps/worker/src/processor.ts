@@ -66,7 +66,6 @@ export async function processJob(
   db: DB,
   storage: StorageClient,
 ): Promise<void> {
-  console.log('Processing?');
   const { batchId, fileKey } = job.data;
 
   // Steps 1 + 3 merged: mark processing and read file metadata in one query.
