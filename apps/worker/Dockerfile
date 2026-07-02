@@ -44,4 +44,4 @@ USER node
 # Graceful shutdown on SIGTERM is handled in src/index.ts (worker.close() +
 # dbClient.end() + destroyStorage()).
 
-CMD ["node", "--experimental-strip-types", "src/index.ts"]
+CMD ["node", "--max-old-space-size=384", "--experimental-strip-types", "src/index.ts"]

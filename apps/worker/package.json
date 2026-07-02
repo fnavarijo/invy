@@ -4,8 +4,9 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "dev":       "node --experimental-strip-types --env-file-if-exists=.env --watch src/index.ts",
-    "start":     "node --experimental-strip-types --env-file-if-exists=.env src/index.ts",
+    "dev":       "node --max-old-space-size=384 --experimental-strip-types --env-file-if-exists=.env --watch src/index.ts",
+    "start":     "node --max-old-space-size=384 --experimental-strip-types --env-file-if-exists=.env src/index.ts",
+    "test":      "node --experimental-strip-types --test 'test/**/*.test.ts'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
