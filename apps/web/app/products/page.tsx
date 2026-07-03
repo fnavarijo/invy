@@ -8,6 +8,7 @@ import { InvoiceDirectionFilter } from '@/components/dashboard/invoice-direction
 import { CurrencyFilter } from '@/components/dashboard/currency-filter';
 import { ProductsKpiStrip, ProductsKpiStripSkeleton } from '@/components/dashboard/products-kpi-strip';
 import { ProductsTable, ProductsTableSkeleton } from '@/components/dashboard/products-table';
+import { PRODUCTS_LIMIT_OPTIONS, type ProductsLimitOption } from '@/components/dashboard/products-limit-options';
 import { parseDateRangeParams } from '@/lib/date-range';
 
 export default async function ProductsPage({
@@ -35,6 +36,13 @@ export default async function ProductsPage({
 
   const rawCurrency = params['currency'];
   const currency = (Array.isArray(rawCurrency) ? rawCurrency[0] : rawCurrency) || 'GTQ';
+
+  const rawLimit = params['limit'];
+  const limitStr = Array.isArray(rawLimit) ? rawLimit[0] : rawLimit;
+  const parsedLimit = Number(limitStr);
+  const limit: ProductsLimitOption = (PRODUCTS_LIMIT_OPTIONS as readonly number[]).includes(parsedLimit)
+    ? (parsedLimit as ProductsLimitOption)
+    : 100;
 
   return (
     <div className="min-h-screen bg-background">
@@ -73,12 +81,12 @@ export default async function ProductsPage({
 
         {/* ── KPI strip ──────────────────────────────────────────────── */}
         <Suspense fallback={<ProductsKpiStripSkeleton />}>
-          <ProductsKpiStrip range={range} currency={currency} issuerNit={effectiveIssuerNit} clientNit={effectiveClientNit} />
+          <ProductsKpiStrip range={range} currency={currency} issuerNit={effectiveIssuerNit} clientNit={effectiveClientNit} limit={limit} />
         </Suspense>
 
         {/* ── Products table ─────────────────────────────────────────── */}
         <Suspense fallback={<ProductsTableSkeleton />}>
-          <ProductsTable range={range} currency={currency} issuerNit={effectiveIssuerNit} clientNit={effectiveClientNit} />
+          <ProductsTable range={range} currency={currency} issuerNit={effectiveIssuerNit} clientNit={effectiveClientNit} limit={limit} />
         </Suspense>
 
       </main>

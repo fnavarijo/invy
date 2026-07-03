@@ -1,6 +1,8 @@
 import { auth } from '@clerk/nextjs/server';
+import { Download } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import {
   Table,
@@ -13,12 +15,15 @@ import {
 } from '@/components/ui/table';
 import { getInvoiceProducts } from '@/lib/api/invoices/get-invoice-products';
 import type { DateRange } from '@/lib/date-range';
+import { ProductsLimitSelector } from './products-limit-selector';
+import { type ProductsLimitOption } from './products-limit-options';
 
 interface ProductsTableProps {
   range: DateRange;
   currency: string;
   issuerNit?: string;
   clientNit?: string;
+  limit?: ProductsLimitOption;
 }
 
 function formatCurrency(value: string, currency: string): string {
@@ -26,11 +31,27 @@ function formatCurrency(value: string, currency: string): string {
   return `${prefix}${Number(value).toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
 }
 
+function buildProductsExportUrl(
+  range: DateRange,
+  currency: string,
+  issuerNit?: string,
+  clientNit?: string,
+): string {
+  const params = new URLSearchParams();
+  if (range.issuedFrom) params.set('issued_from', range.issuedFrom);
+  if (range.issuedTo) params.set('issued_to', range.issuedTo);
+  params.set('currency', currency);
+  if (issuerNit) params.set('issuer_nit', issuerNit);
+  if (clientNit) params.set('client_nit', clientNit);
+  return `/api/invoices/products/export/xlsx?${params.toString()}`;
+}
+
 export async function ProductsTable({
   range,
   currency,
   issuerNit,
   clientNit,
+  limit = 100,
 }: ProductsTableProps) {
   const { getToken } = await auth();
   const authToken = await getToken();
@@ -42,11 +63,15 @@ export async function ProductsTable({
       currency,
       issuerNit,
       clientNit,
+      limit,
     },
     { authToken },
   );
 
   const { products } = data;
+  const shown = products.length;
+  const distinctTotal = data.productsDistinctCount;
+  const exportUrl = buildProductsExportUrl(range, currency, issuerNit, clientNit);
 
   return (
     <section aria-labelledby="products-heading">
@@ -58,6 +83,15 @@ export async function ProductsTable({
           <Text size="body" className="text-muted-foreground">
             Productos agregados del periodo, ordenados por total.
           </Text>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" asChild>
+            <a href={exportUrl} download>
+              <Download />
+              Exportar
+            </a>
+          </Button>
+          <ProductsLimitSelector current={limit} />
         </div>
       </div>
 
@@ -104,7 +138,9 @@ export async function ProductsTable({
           <TableFooter>
             <TableRow>
               <TableCell colSpan={4} className="text-muted-foreground">
-                {products.length} producto{products.length !== 1 ? 's' : ''}
+                {distinctTotal > shown
+                  ? `Mostrando los primeros ${shown.toLocaleString('es-GT')} de ${distinctTotal.toLocaleString('es-GT')} — Exporta para ver todos.`
+                  : `${distinctTotal.toLocaleString('es-GT')} producto${distinctTotal !== 1 ? 's' : ''}`}
               </TableCell>
             </TableRow>
           </TableFooter>

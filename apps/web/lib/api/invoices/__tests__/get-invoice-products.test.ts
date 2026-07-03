@@ -17,6 +17,7 @@ const RAW_RESPONSE = {
   currency: 'GTQ',
   invoices_total: '5000.00',
   products_total: '4800.00',
+  products_distinct_count: 1240,
   products: [
     {
       name: 'Servicio de consultoría',
@@ -164,6 +165,46 @@ describe('[API] getInvoiceProducts', () => {
       const result = await getInvoiceProducts(BASE_PARAMS);
       expect(result.products[0]).not.toHaveProperty('total_quantity');
       expect(result.products[0]).not.toHaveProperty('product_total');
+    });
+  });
+
+  describe('limit parameter', () => {
+    test('sends limit when provided', async () => {
+      const captured = captureRequest(URLS.INVOICES.PRODUCTS, {
+        currency: 'GTQ',
+        invoices_total: '0',
+        products_total: '0',
+        products_distinct_count: 0,
+        products: [],
+      });
+      await getInvoiceProducts({ ...BASE_PARAMS, limit: 250 });
+      expect(captured.params!.get('limit')).toBe('250');
+    });
+
+    test('omits limit when not provided', async () => {
+      const captured = captureRequest(URLS.INVOICES.PRODUCTS, {
+        currency: 'GTQ',
+        invoices_total: '0',
+        products_total: '0',
+        products_distinct_count: 0,
+        products: [],
+      });
+      await getInvoiceProducts(BASE_PARAMS);
+      expect(captured.params!.has('limit')).toBe(false);
+    });
+  });
+
+  describe('distinct count', () => {
+    test('maps products_distinct_count to productsDistinctCount as a number', async () => {
+      setRequest({ url: URLS.INVOICES.PRODUCTS, body: RAW_RESPONSE });
+      const result = await getInvoiceProducts(BASE_PARAMS);
+      expect(result.productsDistinctCount).toBe(1240);
+    });
+
+    test('does not expose products_distinct_count on the response', async () => {
+      setRequest({ url: URLS.INVOICES.PRODUCTS, body: RAW_RESPONSE });
+      const result = await getInvoiceProducts(BASE_PARAMS);
+      expect(result).not.toHaveProperty('products_distinct_count');
     });
   });
 });

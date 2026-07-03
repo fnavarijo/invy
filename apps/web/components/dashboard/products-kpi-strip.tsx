@@ -3,20 +3,22 @@ import { FileText, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getInvoiceProducts } from '@/lib/api/invoices/get-invoice-products';
 import type { DateRange } from '@/lib/date-range';
+import { type ProductsLimitOption } from './products-limit-options';
 
 interface ProductsKpiStripProps {
   range: DateRange;
   currency: string;
   issuerNit?: string;
   clientNit?: string;
+  limit?: ProductsLimitOption;
 }
 
-export async function ProductsKpiStrip({ range, currency, issuerNit, clientNit }: ProductsKpiStripProps) {
+export async function ProductsKpiStrip({ range, currency, issuerNit, clientNit, limit = 100 }: ProductsKpiStripProps) {
   const { getToken } = await auth();
   const authToken = await getToken();
 
   const data = await getInvoiceProducts(
-    { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, currency, issuerNit, clientNit },
+    { issuedFrom: range.issuedFrom, issuedTo: range.issuedTo, currency, issuerNit, clientNit, limit },
     { authToken },
   );
 
@@ -31,7 +33,7 @@ export async function ProductsKpiStrip({ range, currency, issuerNit, clientNit }
     },
     {
       label: 'Tipos de producto',
-      value: data.products.length.toLocaleString('es-GT'),
+      value: data.productsDistinctCount.toLocaleString('es-GT'),
       sub: 'productos distintos',
       icon: FileText,
     },

@@ -4,6 +4,7 @@ import { invoices } from '@invy/db';
 import { getAuth } from '@clerk/fastify';
 import ExcelJS from 'exceljs';
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts';
+import { clampProductsLimit, productTotalNumFmt } from '../../../lib/products.ts';
 
 interface InvoiceListQuery {
   type?: string;
@@ -296,6 +297,7 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
       currency: string;
       issuer_nit?: string;
       client_nit?: string;
+      limit?: string;
     };
   }>(
     '/products',
@@ -307,12 +309,14 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
           currency: string;
           issuer_nit?: string;
           client_nit?: string;
+          limit?: string;
         };
       }>,
       reply: FastifyReply,
     ) => {
       const { userId } = getAuth(request);
-      const { issued_from, issued_to, currency, issuer_nit, client_nit } = request.query;
+      const { issued_from, issued_to, currency, issuer_nit, client_nit, limit } = request.query;
+      const productsLimit = clampProductsLimit(limit);
 
       if (!issued_from || !issued_to) {
         return reply
@@ -360,7 +364,7 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
         ? sql`AND invoices.client_nit = ${client_nit}`
         : sql``;
 
-      const [totalResult, productRows] = await Promise.all([
+      const [totalResult, productRows, distinctResult] = await Promise.all([
         fastify.db
           .select({
             invoices_total: sql<string>`COALESCE(SUM(${invoices.total_amount}), 0)`,
@@ -388,7 +392,22 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
             ${clientFilter}
           GROUP BY elem->>'name', elem->>'type'
           ORDER BY product_total DESC
-          LIMIT 500
+          LIMIT ${productsLimit}
+        `),
+        fastify.db.execute<{ count: number }>(sql`
+          SELECT COUNT(*)::int AS count
+          FROM (
+            SELECT 1
+            FROM invoices
+            CROSS JOIN jsonb_array_elements(line_items) AS elem
+            WHERE invoices.user_id   = ${userId!}
+              AND invoices.currency  = ${currency}
+              AND invoices.issued_at >= ${from.toISOString()}::timestamptz
+              AND invoices.issued_at <= ${to.toISOString()}::timestamptz
+              ${issuerFilter}
+              ${clientFilter}
+            GROUP BY elem->>'name', elem->>'type'
+          ) AS grouped
         `),
       ]);
 
@@ -402,8 +421,124 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
       const products_total = products
         .reduce((sum, p) => sum + Number(p.product_total), 0)
         .toFixed(2);
+      const products_distinct_count = Number(distinctResult[0]?.count ?? 0);
 
-      return reply.send({ currency, invoices_total, products_total, products });
+      return reply.send({ currency, invoices_total, products_total, products, products_distinct_count });
+    },
+  );
+
+  // ── GET /v1/invoices/products/export/xlsx ─────────────────────────────────────
+  fastify.get<{
+    Querystring: {
+      issued_from: string;
+      issued_to: string;
+      currency: string;
+      issuer_nit?: string;
+      client_nit?: string;
+    };
+  }>(
+    '/products/export/xlsx',
+    async (
+      request: FastifyRequest<{
+        Querystring: {
+          issued_from: string;
+          issued_to: string;
+          currency: string;
+          issuer_nit?: string;
+          client_nit?: string;
+        };
+      }>,
+      reply: FastifyReply,
+    ) => {
+      const { userId } = getAuth(request);
+      const { issued_from, issued_to, currency, issuer_nit, client_nit } = request.query;
+
+      if (!issued_from || !issued_to) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"issued_from" and "issued_to" are required.'));
+      }
+      const from = new Date(issued_from);
+      const to = new Date(issued_to);
+      if (isNaN(from.getTime())) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"issued_from" must be a valid ISO 8601 date.'));
+      }
+      if (isNaN(to.getTime())) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"issued_to" must be a valid ISO 8601 date.'));
+      }
+      if (to < from) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"issued_to" must not be before "issued_from".'));
+      }
+      if (!currency) {
+        return reply
+          .status(400)
+          .send(buildError('INVALID_PARAM', '"currency" is required.'));
+      }
+
+      const issuerFilter = issuer_nit ? sql`AND invoices.issuer_nit = ${issuer_nit}` : sql``;
+      const clientFilter = client_nit ? sql`AND invoices.client_nit = ${client_nit}` : sql``;
+
+      // Same aggregation as GET /products, but with NO row cap.
+      const productRows = await fastify.db.execute<{
+        name: string;
+        type: string;
+        total_quantity: string;
+        product_total: string;
+      }>(sql`
+        SELECT
+          elem->>'name'                        AS name,
+          elem->>'type'                        AS type,
+          SUM((elem->>'quantity')::numeric)    AS total_quantity,
+          SUM((elem->>'total')::numeric)       AS product_total
+        FROM invoices
+        CROSS JOIN jsonb_array_elements(line_items) AS elem
+        WHERE invoices.user_id   = ${userId!}
+          AND invoices.currency  = ${currency}
+          AND invoices.issued_at >= ${from.toISOString()}::timestamptz
+          AND invoices.issued_at <= ${to.toISOString()}::timestamptz
+          ${issuerFilter}
+          ${clientFilter}
+        GROUP BY elem->>'name', elem->>'type'
+        ORDER BY product_total DESC
+      `);
+
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Productos');
+      sheet.columns = [
+        { header: 'Producto', key: 'name', width: 40 },
+        { header: 'Tipo', key: 'type', width: 12 },
+        { header: 'Cantidad', key: 'total_quantity', width: 14 },
+        { header: 'Total', key: 'product_total', width: 18 },
+      ];
+
+      for (const row of productRows) {
+        sheet.addRow({
+          name: row.name,
+          type: row.type === 'S' ? 'Servicio' : 'Bien',
+          total_quantity: Number(row.total_quantity),
+          product_total: Number(row.product_total),
+        });
+      }
+
+      // Numeric cells keep their value; only the display format changes.
+      sheet.getColumn('total_quantity').numFmt = '#,##0.###';
+      sheet.getColumn('product_total').numFmt = productTotalNumFmt(currency);
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const fromLabel = issued_from.slice(0, 10).replace(/[^0-9-]/g, '');
+      const toLabel = issued_to.slice(0, 10).replace(/[^0-9-]/g, '');
+      const fileName = `productos_${fromLabel}_${toLabel}.xlsx`;
+
+      return reply
+        .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        .header('Content-Disposition', `attachment; filename="${fileName}"`)
+        .send(Buffer.from(buffer));
     },
   );
 
