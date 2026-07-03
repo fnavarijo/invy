@@ -132,7 +132,7 @@ export function UploadZone() {
           <Loader2 className="mx-auto size-8 animate-spin text-primary" aria-hidden />
           <p className="text-sm font-medium text-foreground">Procesando…</p>
           <p className="text-sm text-muted-foreground">
-            ID de lote: <span className="font-mono">{state.batch.batch_id}</span>
+            ID de lote: <span className="font-mono">{state.batch.batchId}</span>
           </p>
           {/* <p className="text-sm text-muted-foreground">
             Intento {state.attempt + 1}
@@ -152,23 +152,23 @@ export function UploadZone() {
           <dl className="text-sm text-muted-foreground space-y-1">
             <div>
               <dt className="inline">ID de lote: </dt>
-              <dd className="inline font-mono">{batch.batch_id}</dd>
+              <dd className="inline font-mono">{batch.batchId}</dd>
             </div>
-            {batch.invoice_count != null && (
+            {batch.invoiceCount != null && (
               <div>
                 <dt className="inline">Facturas procesadas: </dt>
-                <dd className="inline">{batch.invoice_count}</dd>
+                <dd className="inline">{batch.invoiceCount}</dd>
               </div>
             )}
-            {batch.failed_count != null && batch.failed_count > 0 && (
+            {batch.failedCount != null && batch.failedCount > 0 && (
               <div>
                 <dt className="inline">Fallidas: </dt>
-                <dd className="inline text-destructive">{batch.failed_count}</dd>
+                <dd className="inline text-destructive">{batch.failedCount}</dd>
               </div>
             )}
           </dl>
           <a
-            href={`/batches/${batch.batch_id}`}
+            href={`/batches/${batch.batchId}`}
             className="inline-block text-sm text-primary underline underline-offset-2 hover:no-underline"
           >
             Ver detalles del lote
@@ -190,7 +190,7 @@ export function UploadZone() {
           <p className="text-sm font-semibold text-foreground">Error al subir</p>
           <p className="text-sm text-destructive">{state.error}</p>
           {batch && (
-            <p className="text-sm text-muted-foreground font-mono">{batch.batch_id}</p>
+            <p className="text-sm text-muted-foreground font-mono">{batch.batchId}</p>
           )}
         </div>
         <Button variant="outline" onClick={handleReset} className="w-full sm:w-auto">
