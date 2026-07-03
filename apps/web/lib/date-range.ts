@@ -1,4 +1,4 @@
-import { fromZonedTime } from 'date-fns-tz';
+import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 export type DateRange = { issuedFrom: string; issuedTo: string };
 
@@ -31,43 +31,65 @@ function endOfDayInBusinessTz(dateStr: string): Date {
   return fromZonedTime(`${dateStr}T23:59:59.999`, BUSINESS_TIME_ZONE);
 }
 
+function todayInBusinessTz(): string {
+  return formatInTimeZone(new Date(), BUSINESS_TIME_ZONE, 'yyyy-MM-dd');
+}
+
+/**
+ * Calendar arithmetic on YYYY-MM-DD strings, anchored at UTC midnight so the
+ * server timezone can never influence the result.
+ */
+function toUtcAnchor(dateStr: string): Date {
+  return new Date(`${dateStr}T00:00:00Z`);
+}
+
+function toDateStr(anchor: Date): string {
+  return anchor.toISOString().slice(0, 10);
+}
+
 export function getPresetRange(preset: DatePreset): DateRange {
-  const now = new Date();
+  const today = todayInBusinessTz();
+  const anchor = toUtcAnchor(today);
+
+  let fromStr: string;
+  let toStr: string;
 
   switch (preset) {
     case 'last-30-days': {
-      const from = new Date(now);
-      from.setDate(from.getDate() - 30);
-      from.setHours(0, 0, 0, 0);
-      const to = new Date(now);
-      to.setHours(23, 59, 59, 999);
-      return { issuedFrom: from.toISOString(), issuedTo: to.toISOString() };
+      const from = new Date(anchor);
+      from.setUTCDate(from.getUTCDate() - 30);
+      fromStr = toDateStr(from);
+      toStr = today;
+      break;
     }
     case 'this-month': {
-      const from = new Date(now.getFullYear(), now.getMonth(), 1);
-      const to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-      return { issuedFrom: from.toISOString(), issuedTo: to.toISOString() };
+      fromStr = toDateStr(new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth(), 1)));
+      toStr = toDateStr(new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth() + 1, 0)));
+      break;
     }
     case 'last-month': {
-      const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-      return { issuedFrom: from.toISOString(), issuedTo: to.toISOString() };
+      fromStr = toDateStr(new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth() - 1, 1)));
+      toStr = toDateStr(new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth(), 0)));
+      break;
     }
     case 'last-3-months': {
-      const from = new Date(now);
-      from.setMonth(from.getMonth() - 3);
-      from.setHours(0, 0, 0, 0);
-      const to = new Date(now);
-      to.setHours(23, 59, 59, 999);
-      return { issuedFrom: from.toISOString(), issuedTo: to.toISOString() };
+      const from = new Date(anchor);
+      from.setUTCMonth(from.getUTCMonth() - 3);
+      fromStr = toDateStr(from);
+      toStr = today;
+      break;
     }
     case 'this-year': {
-      const from = new Date(now.getFullYear(), 0, 1);
-      const to = new Date(now);
-      to.setHours(23, 59, 59, 999);
-      return { issuedFrom: from.toISOString(), issuedTo: to.toISOString() };
+      fromStr = toDateStr(new Date(Date.UTC(anchor.getUTCFullYear(), 0, 1)));
+      toStr = today;
+      break;
     }
   }
+
+  return {
+    issuedFrom: startOfDayInBusinessTz(fromStr).toISOString(),
+    issuedTo: endOfDayInBusinessTz(toStr).toISOString(),
+  };
 }
 
 /** Default range shown on the dashboard: last 30 days */
