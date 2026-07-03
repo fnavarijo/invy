@@ -12,6 +12,7 @@ export type InvoiceProductsResponse = {
   currency: string;
   invoicesTotal: string;
   productsTotal: string;
+  productsDistinctCount: number;
   products: InvoiceProductItem[];
 };
 
@@ -21,6 +22,7 @@ export type InvoiceProductsParams = {
   currency: string;
   issuerNit?: string;
   clientNit?: string;
+  limit?: number;
 };
 
 type RawProductItem = {
@@ -34,6 +36,7 @@ type RawProductsResponse = {
   currency: string;
   invoices_total: string;
   products_total: string;
+  products_distinct_count: number;
   products: RawProductItem[];
 };
 
@@ -47,6 +50,7 @@ export async function getInvoiceProducts(
   query.set('currency', params.currency);
   if (params.issuerNit) query.set('issuer_nit', params.issuerNit);
   if (params.clientNit) query.set('client_nit', params.clientNit);
+  if (params.limit !== undefined) query.set('limit', String(params.limit));
 
   const res = await fetch(`${API_BASE_URL}/v1/invoices/products?${query.toString()}`, {
     method: 'GET',
@@ -62,6 +66,7 @@ export async function getInvoiceProducts(
     currency: raw.currency,
     invoicesTotal: raw.invoices_total,
     productsTotal: raw.products_total,
+    productsDistinctCount: Number(raw.products_distinct_count ?? 0),
     products: raw.products.map((p) => ({
       name: p.name,
       type: p.type,

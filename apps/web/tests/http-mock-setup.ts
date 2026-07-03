@@ -32,7 +32,13 @@ export const server = setupServer(
   http.get(URLS.INVOICES.ISSUERS, () => HttpResponse.json({ data: [] })),
   http.get(URLS.INVOICES.CLIENTS, () => HttpResponse.json({ data: [] })),
   http.get(URLS.INVOICES.PRODUCTS, () =>
-    HttpResponse.json({ currency: 'GTQ', invoices_total: '0', products_total: '0', products: [] }),
+    HttpResponse.json({
+      currency: 'GTQ',
+      invoices_total: '0',
+      products_total: '0',
+      products_distinct_count: 0,
+      products: [],
+    }),
   ),
   // Batches
   http.get(URLS.BATCHES.LIST, () => HttpResponse.json({ data: [], next_cursor: null })),
