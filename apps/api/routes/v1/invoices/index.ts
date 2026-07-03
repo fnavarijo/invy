@@ -531,8 +531,8 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
       sheet.getColumn('product_total').numFmt = productTotalNumFmt(currency);
 
       const buffer = await workbook.xlsx.writeBuffer();
-      const fromLabel = issued_from.slice(0, 10);
-      const toLabel = issued_to.slice(0, 10);
+      const fromLabel = issued_from.slice(0, 10).replace(/[^0-9-]/g, '');
+      const toLabel = issued_to.slice(0, 10).replace(/[^0-9-]/g, '');
       const fileName = `productos_${fromLabel}_${toLabel}.xlsx`;
 
       return reply
