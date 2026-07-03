@@ -1,6 +1,12 @@
 import { describe, test, expect, beforeEach, afterEach, afterAll, vi } from 'vitest';
 
-import { parseDateRangeParams, getPresetRange, defaultRange } from '../date-range';
+import {
+  parseDateRangeParams,
+  getPresetRange,
+  defaultRange,
+  toDateInputValue,
+  formatDate,
+} from '../date-range';
 
 const ORIGINAL_TZ = process.env.TZ;
 const TIMEZONES = ['UTC', 'America/Guatemala', 'Asia/Tokyo'] as const;
@@ -105,6 +111,32 @@ describe.each(TIMEZONES)('date-range under server TZ %s', (tz) => {
         issuedFrom: '2026-05-31T06:00:00.000Z', // Jun 30 − 30 days = May 31
         issuedTo: '2026-07-01T05:59:59.999Z', // end of Jun 30 GT
       });
+    });
+  });
+
+  describe('toDateInputValue', () => {
+    test('formats instants as GT calendar dates', () => {
+      // Jul 31, 23:59:59.999 GT — the UTC date part would wrongly be Aug 1
+      expect(toDateInputValue('2026-08-01T05:59:59.999Z')).toBe('2026-07-31');
+      expect(toDateInputValue('2026-07-01T06:00:00.000Z')).toBe('2026-07-01');
+    });
+
+    test('round-trips preset boundaries (protects getActivePreset)', () => {
+      const range = getPresetRange('this-month');
+      expect(toDateInputValue(range.issuedFrom)).toBe('2026-07-01');
+      expect(toDateInputValue(range.issuedTo)).toBe('2026-07-31');
+    });
+  });
+
+  describe('formatDate', () => {
+    test('renders the GT wall date in es-GT short format', () => {
+      expect(formatDate('2026-08-01T05:59:59.999Z')).toBe('31/07/2026');
+    });
+
+    test('accepts Intl option overrides while keeping the business zone', () => {
+      expect(
+        formatDate('2026-08-01T05:59:59.999Z', { day: 'numeric', month: 'long' }),
+      ).toBe('31 de julio de 2026');
     });
   });
 });

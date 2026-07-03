@@ -123,16 +123,21 @@ export function parseDateRangeParams(
   };
 }
 
-/** Formats a Date for display in es-GT locale */
-export function formatDate(date: Date | string): string {
+/** Formats a Date for display in es-GT locale, as a Guatemala calendar date */
+export function formatDate(
+  date: Date | string,
+  options?: Intl.DateTimeFormatOptions,
+): string {
   return new Date(date).toLocaleDateString('es-GT', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+    ...options,
+    timeZone: BUSINESS_TIME_ZONE,
   });
 }
 
-/** Formats an ISO string as a date-only value for <input type="date"> */
+/** Formats an ISO instant as the GT calendar date for <input type="date"> */
 export function toDateInputValue(iso: string): string {
-  return iso.slice(0, 10);
+  return formatInTimeZone(iso, BUSINESS_TIME_ZONE, 'yyyy-MM-dd');
 }
