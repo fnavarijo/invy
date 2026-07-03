@@ -5,17 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { getBatch } from '@/lib/api/batches';
 import { getStatusStyle, STATUS_LABELS } from '@/lib/batch-utils';
+import { formatDate } from '@/lib/date-range';
 import { DownloadReportButton } from '@/components/pages/batch-detail/download-report-button';
 import { DownloadProductsButton } from '@/components/pages/batch-detail/download-products-button';
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('es-GT', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
 
 interface BatchHeaderProps {
   paramsPromise: Promise<{ id: string }>;
@@ -71,7 +63,7 @@ export async function BatchHeader({ paramsPromise }: BatchHeaderProps) {
             <div>
               <dt className="text-sm text-muted-foreground">Creado el</dt>
               <dd className="mt-1 text-sm font-medium text-foreground">
-                {formatDate(batch.createdAt)}
+                {batch.createdAt ? formatDate(batch.createdAt, { day: 'numeric', month: 'long' }) : '—'}
               </dd>
             </div>
           </dl>
