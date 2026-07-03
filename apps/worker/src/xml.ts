@@ -7,16 +7,20 @@ const PARSER = new XMLParser({
   isArray: (name) => name === 'dte:Item',
 })
 
-type ValidationResult = { ok: true } | { ok: false; error: string }
+type ValidationResult =
+  | { ok: true; doc: Record<string, any> }
+  | { ok: false; error: string }
 
 export function validateXsd(content: Buffer): ValidationResult {
-  const result = XMLValidator.validate(content.toString(), { allowBooleanAttributes: true })
+  const text = content.toString()
+  const result = XMLValidator.validate(text, { allowBooleanAttributes: true })
   if (result !== true) {
     return { ok: false, error: result.err.msg }
   }
-  // Structural check: ensure required SAT elements are present
+  // Structural check: ensure required SAT elements are present. Parse ONCE
+  // here and hand the parsed doc to extractInvoiceFields (no re-parse).
   try {
-    const parsed = PARSER.parse(content.toString())
+    const parsed = PARSER.parse(text)
     const root = parsed?.['dte:GTDocumento']?.['dte:SAT']?.['dte:DTE']?.['dte:DatosEmision']
     if (!root) return { ok: false, error: 'Missing required SAT DTE structure' }
     if (!root['dte:DatosGenerales']) return { ok: false, error: 'Missing DatosGenerales' }
@@ -24,7 +28,7 @@ export function validateXsd(content: Buffer): ValidationResult {
     if (!root['dte:Receptor']) return { ok: false, error: 'Missing Receptor' }
     if (!root['dte:Items']) return { ok: false, error: 'Missing Items' }
     if (!root['dte:Totales']) return { ok: false, error: 'Missing Totales' }
-    return { ok: true }
+    return { ok: true, doc: parsed }
   } catch (err) {
     return { ok: false, error: String(err) }
   }
@@ -51,8 +55,7 @@ export interface RawInvoice {
   rawPayload: Record<string, unknown>
 }
 
-export function extractInvoiceFields(content: Buffer): RawInvoice {
-  const parsed = PARSER.parse(content.toString())
+export function extractInvoiceFields(parsed: Record<string, any>): RawInvoice {
   const root = parsed['dte:GTDocumento']['dte:SAT']['dte:DTE']['dte:DatosEmision']
   const certif = parsed['dte:GTDocumento']['dte:SAT']['dte:DTE']['dte:Certificacion']
 

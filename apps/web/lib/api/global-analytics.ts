@@ -1,5 +1,11 @@
 import { API_BASE_URL, buildHeaders, handleResponse } from '@/lib/api/helpers';
 import type { RequestConfig } from '@/lib/api/types';
+import type {
+  TopProductByQuantityItem,
+  TopProductByRevenueItem,
+  TopBuyerItem,
+  TopIssuerItem,
+} from '@/lib/api/analytics';
 
 export type GlobalAnalyticsParams = {
   issuedFrom: string;
@@ -18,19 +24,31 @@ export type GlobalSummaryResponse = {
   unique_clients: number;
 };
 
-export type GlobalTopProductsByQuantityResponse = {
+type RawGlobalTopProductsByQuantityResponse = {
   issued_from: string;
   issued_to: string;
   data: Array<{ product_name: string; total_quantity: string }>;
 };
 
-export type GlobalTopProductsByRevenueResponse = {
+export type GlobalTopProductsByQuantityResponse = {
+  issuedFrom: string;
+  issuedTo: string;
+  data: TopProductByQuantityItem[];
+};
+
+type RawGlobalTopProductsByRevenueResponse = {
   issued_from: string;
   issued_to: string;
   data: Array<{ product_name: string; total_revenue: string }>;
 };
 
-export type GlobalTopBuyersResponse = {
+export type GlobalTopProductsByRevenueResponse = {
+  issuedFrom: string;
+  issuedTo: string;
+  data: TopProductByRevenueItem[];
+};
+
+type RawGlobalTopBuyersResponse = {
   issued_from: string;
   issued_to: string;
   data: Array<{
@@ -39,6 +57,12 @@ export type GlobalTopBuyersResponse = {
     total_spent: string;
     invoice_count: number;
   }>;
+};
+
+export type GlobalTopBuyersResponse = {
+  issuedFrom: string;
+  issuedTo: string;
+  data: TopBuyerItem[];
 };
 
 function buildUrl(
@@ -81,7 +105,12 @@ export async function getGlobalTopProductsByQuantity(
     },
     signal: config?.signal,
   });
-  return handleResponse<GlobalTopProductsByQuantityResponse>(res);
+  const raw = await handleResponse<RawGlobalTopProductsByQuantityResponse>(res);
+  return {
+    issuedFrom: raw.issued_from,
+    issuedTo: raw.issued_to,
+    data: raw.data.map((i) => ({ productName: i.product_name, totalQuantity: i.total_quantity })),
+  };
 }
 
 export async function getGlobalTopProductsByRevenue(
@@ -95,7 +124,12 @@ export async function getGlobalTopProductsByRevenue(
     },
     signal: config?.signal,
   });
-  return handleResponse<GlobalTopProductsByRevenueResponse>(res);
+  const raw = await handleResponse<RawGlobalTopProductsByRevenueResponse>(res);
+  return {
+    issuedFrom: raw.issued_from,
+    issuedTo: raw.issued_to,
+    data: raw.data.map((i) => ({ productName: i.product_name, totalRevenue: i.total_revenue })),
+  };
 }
 
 export async function getGlobalTopBuyers(
@@ -109,10 +143,20 @@ export async function getGlobalTopBuyers(
     },
     signal: config?.signal,
   });
-  return handleResponse<GlobalTopBuyersResponse>(res);
+  const raw = await handleResponse<RawGlobalTopBuyersResponse>(res);
+  return {
+    issuedFrom: raw.issued_from,
+    issuedTo: raw.issued_to,
+    data: raw.data.map((i) => ({
+      clientName: i.client_name,
+      clientNit: i.client_nit,
+      totalSpent: i.total_spent,
+      invoiceCount: i.invoice_count,
+    })),
+  };
 }
 
-export type GlobalTopIssuersResponse = {
+type RawGlobalTopIssuersResponse = {
   issued_from: string;
   issued_to: string;
   data: Array<{
@@ -121,6 +165,12 @@ export type GlobalTopIssuersResponse = {
     total_received: string;
     invoice_count: number;
   }>;
+};
+
+export type GlobalTopIssuersResponse = {
+  issuedFrom: string;
+  issuedTo: string;
+  data: TopIssuerItem[];
 };
 
 export async function getGlobalTopIssuers(
@@ -134,5 +184,15 @@ export async function getGlobalTopIssuers(
     },
     signal: config?.signal,
   });
-  return handleResponse<GlobalTopIssuersResponse>(res);
+  const raw = await handleResponse<RawGlobalTopIssuersResponse>(res);
+  return {
+    issuedFrom: raw.issued_from,
+    issuedTo: raw.issued_to,
+    data: raw.data.map((i) => ({
+      issuerName: i.issuer_name,
+      issuerNit: i.issuer_nit,
+      totalReceived: i.total_received,
+      invoiceCount: i.invoice_count,
+    })),
+  };
 }

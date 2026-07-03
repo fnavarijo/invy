@@ -19,8 +19,7 @@ import type {
   AnalyticsResponse,
 } from '../../../types/index.ts';
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts';
-
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+import { MAX_ZIP_BYTES, fileTooLargeMessage } from '../../../lib/limits.ts';
 
 const VALID_STATUSES = new Set(['queued', 'processing', 'done', 'failed']);
 
@@ -138,7 +137,7 @@ async function processFilePart(
       await upload.abort();
       return reply
         .status(413)
-        .send(buildError('FILE_TOO_LARGE', 'File exceeds the 50 MB limit.'));
+        .send(buildError('FILE_TOO_LARGE', fileTooLargeMessage()));
     }
     throw err;
   }
@@ -147,7 +146,7 @@ async function processFilePart(
     await upload.abort();
     return reply
       .status(413)
-      .send(buildError('FILE_TOO_LARGE', 'File exceeds the 50 MB limit.'));
+      .send(buildError('FILE_TOO_LARGE', fileTooLargeMessage()));
   }
 
   // TODO: In case the insertion fails, we should delete the file from storage.
@@ -197,7 +196,7 @@ async function processFilePart(
 
 const batchesRoute: FastifyPluginAsync = async (fastify) => {
   await fastify.register(multipart, {
-    limits: { fileSize: MAX_FILE_SIZE },
+    limits: { fileSize: MAX_ZIP_BYTES },
     throwFileSizeLimit: false,
   });
 
