@@ -4,6 +4,7 @@ import { invoices } from '@invy/db';
 import { getAuth } from '@clerk/fastify';
 import ExcelJS from 'exceljs';
 import { buildError, encodeCursor, decodeCursor } from '../../../lib/http.ts';
+import { clampProductsLimit } from '../../../lib/products.ts';
 
 interface InvoiceListQuery {
   type?: string;
@@ -296,6 +297,7 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
       currency: string;
       issuer_nit?: string;
       client_nit?: string;
+      limit?: string;
     };
   }>(
     '/products',
@@ -307,12 +309,14 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
           currency: string;
           issuer_nit?: string;
           client_nit?: string;
+          limit?: string;
         };
       }>,
       reply: FastifyReply,
     ) => {
       const { userId } = getAuth(request);
-      const { issued_from, issued_to, currency, issuer_nit, client_nit } = request.query;
+      const { issued_from, issued_to, currency, issuer_nit, client_nit, limit } = request.query;
+      const productsLimit = clampProductsLimit(limit);
 
       if (!issued_from || !issued_to) {
         return reply
@@ -360,7 +364,7 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
         ? sql`AND invoices.client_nit = ${client_nit}`
         : sql``;
 
-      const [totalResult, productRows] = await Promise.all([
+      const [totalResult, productRows, distinctResult] = await Promise.all([
         fastify.db
           .select({
             invoices_total: sql<string>`COALESCE(SUM(${invoices.total_amount}), 0)`,
@@ -388,7 +392,22 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
             ${clientFilter}
           GROUP BY elem->>'name', elem->>'type'
           ORDER BY product_total DESC
-          LIMIT 500
+          LIMIT ${productsLimit}
+        `),
+        fastify.db.execute<{ count: number }>(sql`
+          SELECT COUNT(*)::int AS count
+          FROM (
+            SELECT 1
+            FROM invoices
+            CROSS JOIN jsonb_array_elements(line_items) AS elem
+            WHERE invoices.user_id   = ${userId!}
+              AND invoices.currency  = ${currency}
+              AND invoices.issued_at >= ${from.toISOString()}::timestamptz
+              AND invoices.issued_at <= ${to.toISOString()}::timestamptz
+              ${issuerFilter}
+              ${clientFilter}
+            GROUP BY elem->>'name', elem->>'type'
+          ) AS grouped
         `),
       ]);
 
@@ -402,8 +421,9 @@ const invoicesRoute: FastifyPluginAsync = async (fastify) => {
       const products_total = products
         .reduce((sum, p) => sum + Number(p.product_total), 0)
         .toFixed(2);
+      const products_distinct_count = Number(distinctResult[0]?.count ?? 0);
 
-      return reply.send({ currency, invoices_total, products_total, products });
+      return reply.send({ currency, invoices_total, products_total, products, products_distinct_count });
     },
   );
 
